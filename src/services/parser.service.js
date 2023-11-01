@@ -76,9 +76,9 @@ class ParserService {
         try {
             const url = ParserService.getBookingUrl(request, offset)
             console.log(url)
-            browser = await puppeteer.launch({ headless: true, devtools: true
-                // executablePath: '/usr/bin/chromium-browser',
-                // args: ['--no-sandbox']
+            browser = await puppeteer.launch({ headless: true, devtools: true,
+                executablePath: '/usr/bin/chromium-browser',
+                args: ['--no-sandbox']
             })
             const page = await browser.newPage()
             await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
@@ -170,9 +170,9 @@ class ParserService {
         let browser
         console.log(2)
         try {
-            browser = await puppeteer.launch({ headless: true, devtools: true
-                // executablePath: '/usr/bin/chromium-browser',
-                // args: ['--no-sandbox']
+            browser = await puppeteer.launch({ headless: true, devtools: true,
+                executablePath: '/usr/bin/chromium-browser',
+                args: ['--no-sandbox']
             })
 
             const page = await browser.newPage()
