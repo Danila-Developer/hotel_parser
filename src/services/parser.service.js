@@ -66,40 +66,24 @@ class ParserService {
 
     }
 
-    static async startParsingV2(currentRequestId) {
-        let offset = 0
-        const hotels = []
-        let hotelsLengthBuff = -1
-        let country = ''
-
-        do {
-            //if (ParserService.actualRequestId !== currentRequestId) break
-
-            try {
-                const [hotelNames, countryName]  = await ParserService.getHotels(ParserService.actualRequest, offset)
-                console.log('get-hotel', countryName)
-                hotelsLengthBuff = hotelNames.length
-                hotels.push(...hotelNames)
-                country = countryName ? countryName : country
-
-                offset = offset + 25
-            } catch (err) {
-                offset = offset + 25
-                console.log(err)
-            }
-        } while (hotelsLengthBuff !== 0 && ParserService.actualRequestId === currentRequestId)
-        console.log(hotels)
+    static async postHotelsByNames(hotelNames, currentRequestId, country) {
+        const hotels = [...hotelNames]
 
         while (hotels.length > 0 && ParserService.actualRequestId === currentRequestId) {
-            //if (!ParserService.actualRequestId) break
-
             try {
                 const hotelInfo = await ParserService.getEmailFromOfficialSite(hotels[0])
 
                 if (hotelInfo?.name) {
-                    const { name, emails, executionTime, officialUrl} = hotelInfo
+                    const {name, emails, executionTime, officialUrl} = hotelInfo
                     console.log('post', country)
-                    await models.HotelModel.create({ name, email: emails?.join(','), executionTime, officialUrl, country, requestId: currentRequestId })
+                    await models.HotelModel.create({
+                        name,
+                        email: emails?.join(','),
+                        executionTime,
+                        officialUrl,
+                        country,
+                        requestId: currentRequestId
+                    })
                 }
                 hotels.shift()
             } catch (err) {
@@ -107,6 +91,30 @@ class ParserService {
                 console.log(err)
             }
         }
+    }
+
+    static async startParsingV2(currentRequestId) {
+        let offset = 0
+
+        while (ParserService.actualRequestId === currentRequestId) {
+            try {
+                const [hotelNames, country] = await ParserService.getHotels(ParserService.actualRequest, offset)
+                console.log('get-hotel', country)
+                if (hotelNames?.length > 0) {
+                    await ParserService.postHotelsByNames(hotelNames, currentRequestId, country)
+                } else {
+                    if (ParserService.actualRequestId === currentRequestId) {
+                        ParserService.actualRequestId = false
+                    }
+                    break
+                }
+                offset = offset + 25
+            } catch (err) {
+                offset = offset + 25
+                console.log(err)
+            }
+        }
+
         if (ParserService.actualRequestId === currentRequestId) {
             ParserService.actualRequestId = false
         }
