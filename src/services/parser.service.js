@@ -4,10 +4,11 @@ const { TimeoutError } = require('puppeteer')
 const moment = require('moment')
 
 class ParserService {
-    static actualRequestId = ''
+    static actualRequestId = false
     static actualRequest = false
 
     static async createRequest({ place, rating = [], price = [], reportCount }) {
+        ParserService.stopParsing()
         const request = await models.RequestModel.create({ place, rating: rating.join(','), price: price.join(','), reportCount })
         await ParserService.deleteOldRequests()
         ParserService.initRequest(request)
@@ -17,7 +18,7 @@ class ParserService {
     static initRequest(request) {
         ParserService.actualRequestId = request.id
         ParserService.actualRequest = request
-        ParserService.startParsing()
+        ParserService.startParsingV2(request.id)
     }
 
     static async startParsing() {
@@ -65,76 +66,112 @@ class ParserService {
 
     }
 
+    static async startParsingV2(currentRequestId) {
+        let offset = 0
+        const hotels = []
+        let hotelsLengthBuff = -1
+        let country = ''
+
+        do {
+            //if (ParserService.actualRequestId !== currentRequestId) break
+
+            try {
+                const [hotelNames, countryName]  = await ParserService.getHotels(ParserService.actualRequest, offset)
+                console.log('get-hotel', countryName)
+                hotelsLengthBuff = hotelNames.length
+                hotels.push(...hotelNames)
+                country = countryName ? countryName : country
+
+                offset = offset + 25
+            } catch (err) {
+                offset = offset + 25
+                console.log(err)
+            }
+        } while (hotelsLengthBuff !== 0 && ParserService.actualRequestId === currentRequestId)
+        console.log(hotels)
+
+        while (hotels.length > 0 && ParserService.actualRequestId === currentRequestId) {
+            //if (!ParserService.actualRequestId) break
+
+            try {
+                const hotelInfo = await ParserService.getEmailFromOfficialSite(hotels[0])
+
+                if (hotelInfo?.name) {
+                    const { name, emails, executionTime, officialUrl} = hotelInfo
+                    console.log('post', country)
+                    await models.HotelModel.create({ name, email: emails?.join(','), executionTime, officialUrl, country, requestId: currentRequestId })
+                }
+                hotels.shift()
+            } catch (err) {
+                hotels.shift()
+                console.log(err)
+            }
+        }
+        if (ParserService.actualRequestId === currentRequestId) {
+            ParserService.actualRequestId = false
+        }
+    }
+
     static stopParsing() {
         ParserService.actualRequestId = false
         ParserService.actualRequest = false
     }
 
     static async getHotels(request, offset = 0) {
-        let browser
-        console.log(1)
-        try {
-            const url = ParserService.getBookingUrl(request, offset)
-            console.log(url)
-            browser = await puppeteer.launch({ headless: true, devtools: true,
-                executablePath: '/usr/bin/chromium-browser',
-                args: ['--no-sandbox']
-            })
-            const page = await browser.newPage()
-            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
+        const url = ParserService.getBookingUrl(request, offset)
+        //console.log(url)
+        const browser = await puppeteer.launch({ headless: true, devtools: true,
+            executablePath: '/usr/bin/chromium-browser',
+            args: ['--no-sandbox']
+        })
+        const page = await browser.newPage()
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
 
-            await page.setJavaScriptEnabled(false)
-            await page.setRequestInterception(true);
-            page.on('request', request => {
-                if (['image', 'font', 'stylesheet'].includes(request.resourceType())) {
-                    request.abort();
-                } else {
-                    request.continue();
-                }
-            })
-
-            await page.goto(url, { waitUntil: 'networkidle2' })
-
-
-            const country = await page.$eval('div[data-testid="breadcrumbs"]', element => Array.from(element.querySelector('ol').querySelectorAll('li'))[1].querySelector('a').querySelector('span').innerText)
-
-            let names
-            if (+request?.reportCount === 0) {
-                names = await page.$$eval('div[data-testid="title"]', (elements) => elements.map(el => el.innerText))
+        await page.setJavaScriptEnabled(false)
+        await page.setRequestInterception(true);
+        page.on('request', request => {
+            if (['image', 'font', 'stylesheet'].includes(request.resourceType())) {
+                request.abort();
             } else {
-                names = await page.$$eval('div[data-testid="property-card-container"]', cards => {
-                    return cards.map(card => {
-                        const name = card.querySelector('div[data-testid="title"]').innerText
-                        const reviewScope = card.querySelector('div[data-testid="review-score"]')
-
-                        if (reviewScope !== null) {
-                            if (reviewScope.querySelectorAll('div')[3]) {
-                                const reportCount = +reviewScope.querySelectorAll('div')[3]?.innerText?.split(' ')[0]
-
-                                return { name, reportCount }
-                            }
-                        }
-                    })
-                })
-
-                names = names.filter(name => {
-                    if (name === null) return false
-
-                    return name.reportCount > +request?.reportCount;
-                }).map(name => name.name)
+                request.continue();
             }
+        })
+
+        await page.goto(url, { waitUntil: 'networkidle2' })
 
 
-            await browser.close()
-            console.log(names)
-            return [names, country]
-        } catch (err) {
-            browser ? await browser.close() : null
-            console.log(err)
+        const country = await page.$eval('div[data-testid="breadcrumbs"]', element => Array.from(element.querySelector('ol').querySelectorAll('li'))[1].querySelector('a').querySelector('span').innerText)
 
-            return [[], '']
+        let names
+        if (+request?.reportCount === 0) {
+            names = await page.$$eval('div[data-testid="title"]', (elements) => elements.map(el => el.innerText))
+        } else {
+            names = await page.$$eval('div[data-testid="property-card-container"]', cards => {
+                return cards.map(card => {
+                    const name = card.querySelector('div[data-testid="title"]').innerText
+                    const reviewScope = card.querySelector('div[data-testid="review-score"]')
+
+                    if (reviewScope !== null) {
+                        if (reviewScope.querySelectorAll('div')[3]) {
+                            const reportCount = +reviewScope.querySelectorAll('div')[3]?.innerText?.split(' ')[0]
+
+                            return { name, reportCount }
+                        }
+                    }
+                })
+            })
+
+            names = names.filter(name => {
+                if (name === null) return false
+
+                return name.reportCount > +request?.reportCount;
+            }).map(name => name.name)
         }
 
+
+        await browser.close()
+        //console.log(names)
+        return [names, country]
     }
 
     static getBookingUrl({ place, rating, price }, offset) {
