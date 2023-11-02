@@ -96,45 +96,40 @@ class ParserService {
     static async startParsingV2(currentRequestId) {
         let offset = 0
 
-        try {
-            const browser = await puppeteer.launch({ headless: true, devtools: true,
-                executablePath: '/usr/bin/chromium-browser',
-                args: ['--no-sandbox']
-            })
-            const pageBooking = await browser.newPage()
-            const pageMaps = await browser.newPage()
-            const pageOfficialSite = await browser.newPage()
 
-            await pageMaps.waitForNavigation({ timeout: 15000 })
-            await pageOfficialSite.waitForNavigation({ timeout: 15000 })
+        const browser = await puppeteer.launch({ headless: true, devtools: true,
+            executablePath: '/usr/bin/chromium-browser',
+            args: ['--no-sandbox']
+        })
+        const pageBooking = await browser.newPage()
+        const pageMaps = await browser.newPage()
+        const pageOfficialSite = await browser.newPage()
 
-            await pageBooking.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
+        await pageMaps.waitForNavigation({ timeout: 15000 })
+        await pageOfficialSite.waitForNavigation({ timeout: 15000 })
 
-            await pageBooking.setJavaScriptEnabled(false)
-            await pageBooking.setRequestInterception(true);
-            pageBooking.on('request', request => {
-                if (['image', 'font', 'stylesheet'].includes(request.resourceType())) {
-                    request.abort();
-                } else {
-                    request.continue();
-                }
-            })
+        await pageBooking.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
 
-            await pageMaps.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
-            await pageOfficialSite.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
-            await pageOfficialSite.setRequestInterception(true);
-            pageOfficialSite.on('request', request => {
-                if (['image', 'font'].includes(request.resourceType())) {
-                    request.abort();
-                } else {
-                    request.continue();
-                }
-            });
-        } catch (err) {
-            console.log(err)
-        }
+        await pageBooking.setJavaScriptEnabled(false)
+        await pageBooking.setRequestInterception(true);
+        pageBooking.on('request', request => {
+            if (['image', 'font', 'stylesheet'].includes(request.resourceType())) {
+                request.abort();
+            } else {
+                request.continue();
+            }
+        })
 
-
+        await pageMaps.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
+        await pageOfficialSite.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
+        await pageOfficialSite.setRequestInterception(true);
+        pageOfficialSite.on('request', request => {
+            if (['image', 'font'].includes(request.resourceType())) {
+                request.abort();
+            } else {
+                request.continue();
+            }
+        });
 
         while (ParserService.actualRequestId === currentRequestId) {
             try {
