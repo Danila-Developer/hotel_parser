@@ -96,7 +96,7 @@ class ParserService {
     static async startParsingV3(currentRequestId) {
         const processesCount = 4
 
-        for (let i = 0; i++; i < processesCount) {
+        for (let i = 0; i < processesCount; i++) {
             console.log(`start process ${i + 1}`)
             ParserService.startParsingV2(currentRequestId, i, processesCount)
         }
