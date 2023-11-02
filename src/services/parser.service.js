@@ -6,7 +6,7 @@ const moment = require('moment')
 class ParserService {
     static actualRequestId = false
     static actualRequest = false
-    static processInWorkCount = 0
+    static processInWorkCount = {}
 
     static async createRequest({ place, rating = [], price = [], reportCount }) {
         //ParserService.stopParsing()
@@ -95,7 +95,7 @@ class ParserService {
     }
 
     static async startParsingV3(currentRequestId, processesCount) {
-        ParserService.processInWorkCount = processesCount
+        ParserService.processInWorkCount = { ...ParserService.processInWorkCount, [currentRequestId]: processesCount }
         //process.setMaxListeners(processesCount)
 
         for (let i = 0; i < processesCount; i++) {
@@ -159,10 +159,10 @@ class ParserService {
                 console.log(err)
             }
         }
-        ParserService.processInWorkCount = ParserService.processInWorkCount - 1
+        ParserService.processInWorkCount[currentRequestId] = ParserService.processInWorkCount[currentRequestId] - 1
         console.log(ParserService.processInWorkCount)
         await browser.close()
-        if (ParserService.actualRequestId === currentRequestId && ParserService.processInWorkCount < 1) {
+        if (ParserService.actualRequestId === currentRequestId && ParserService.processInWorkCount[currentRequestId] < 1) {
             ParserService.actualRequestId = false
         }
     }
