@@ -22,50 +22,50 @@ class ParserService {
         ParserService.startParsingV3(request.id, processesCount)
     }
 
-    static async startParsing() {
-        let offset = 0
-
-        while (ParserService.actualRequestId) {
-            try {
-                const [hotelNames, country]  = await ParserService.getHotels(ParserService.actualRequest, offset)
-                if (hotelNames?.length > 0 && country) {
-                    for (let i in hotelNames) {
-                        if (ParserService.actualRequestId) {
-                            const hotelInfo = await ParserService.getEmailFromOfficialSite(hotelNames[i])
-
-                            if (hotelInfo?.name) {
-                                const { name, emails, executionTime, officialUrl} = hotelInfo
-                                try {
-                                    await models.HotelModel.create({ name, email: emails?.join(','), executionTime, officialUrl, country, requestId: ParserService.actualRequestId })
-                                } catch (err) {
-                                    console.log(err)
-                                }
-                            }
-
-                        } else {
-                            console.log('parsing stopped')
-                            console.log(333)
-                            break
-                        }
-                    }
-                    offset = offset + 25
-                } else {
-                    ParserService.actualRequestId = false
-                    console.log('parsing stopped')
-                    console.log(222)
-                    console.log(ParserService.actualRequestId)
-                    console.log(ParserService.actualRequest)
-                    break
-                }
-            } catch (err) {
-                offset = offset + 25
-                console.log('retry')
-                console.log(err)
-            }
-
-        }
-
-    }
+    // static async startParsing() {
+    //     let offset = 0
+    //
+    //     while (ParserService.actualRequestId) {
+    //         try {
+    //             const [hotelNames, country]  = await ParserService.getHotels(ParserService.actualRequest, offset)
+    //             if (hotelNames?.length > 0 && country) {
+    //                 for (let i in hotelNames) {
+    //                     if (ParserService.actualRequestId) {
+    //                         const hotelInfo = await ParserService.getEmailFromOfficialSite(hotelNames[i])
+    //
+    //                         if (hotelInfo?.name) {
+    //                             const { name, emails, executionTime, officialUrl} = hotelInfo
+    //                             try {
+    //                                 await models.HotelModel.create({ name, email: emails?.join(','), executionTime, officialUrl, country, requestId: ParserService.actualRequestId })
+    //                             } catch (err) {
+    //                                 console.log(err)
+    //                             }
+    //                         }
+    //
+    //                     } else {
+    //                         console.log('parsing stopped')
+    //                         console.log(333)
+    //                         break
+    //                     }
+    //                 }
+    //                 offset = offset + 25
+    //             } else {
+    //                 ParserService.actualRequestId = false
+    //                 console.log('parsing stopped')
+    //                 console.log(222)
+    //                 console.log(ParserService.actualRequestId)
+    //                 console.log(ParserService.actualRequest)
+    //                 break
+    //             }
+    //         } catch (err) {
+    //             offset = offset + 25
+    //             console.log('retry')
+    //             console.log(err)
+    //         }
+    //
+    //     }
+    //
+    // }
 
     static async postHotelsByNames(page, page2, hotelNames, currentRequestId, country) {
         const hotels = [...hotelNames]
@@ -96,7 +96,7 @@ class ParserService {
 
     static async startParsingV3(currentRequestId, processesCount) {
         ParserService.processInWorkCount = processesCount
-        process.setMaxListeners(processesCount)
+        //process.setMaxListeners(processesCount)
 
         for (let i = 0; i < processesCount; i++) {
             console.log(`start process ${i + 1}`)
