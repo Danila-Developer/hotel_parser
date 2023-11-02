@@ -160,7 +160,7 @@ class ParserService {
             }
         }
         ParserService.processInWorkCount = ParserService.processInWorkCount - 1
-
+        console.log(ParserService.processInWorkCount)
         await browser.close()
         if (ParserService.actualRequestId === currentRequestId && ParserService.processInWorkCount < 1) {
             ParserService.actualRequestId = false
