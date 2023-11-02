@@ -226,16 +226,16 @@ class ParserService {
 
             await page.type(`input[name=q]`, hotelName, {delay: 20})
 
-            await page.waitForSelector('div[data-index="0"]', { timeout: 1200 })
+            await page.waitForSelector('div[data-index="0"]', { timeout: 800 })
             await page.click('div[data-index="0"]')
 
             try {
-                await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 1300 })
+                await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 800 })
             } catch (err) {
                 if (err instanceof TimeoutError) {
-                    await page.waitForSelector('div[role="feed"]', { timeout: 1300 })
+                    await page.waitForSelector('div[role="feed"]', { timeout: 800 })
                     await page.evaluate(() => document.querySelector('div[role="feed"]').querySelectorAll('a')[1].click())
-                    await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 1300 })
+                    await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 800 })
                 }
             }
 
@@ -254,7 +254,7 @@ class ParserService {
                 });
                 await page2.goto(url, { waitUntil: 'networkidle2' })
                 const htmlPage = await page2.evaluate(() => document.documentElement.innerHTML)
-                const match = htmlPage.match(/[\w\.-]+@[\w\.-]+\.\w+/gu)
+                const match = htmlPage.match(/[\w.-]+@[\w.-]+\.\w+/gu)
 
                 await browser.close()
 
