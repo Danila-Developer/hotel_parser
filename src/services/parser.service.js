@@ -244,7 +244,7 @@ class ParserService {
 
         const checking = moment().add('4', 'm').format('YYYY-MM-DD')
         const checkout = moment().add('4', 'm').add('3', 'd').format('YYYY-MM-DD')
-
+        console.log(`https://www.booking.com/searchresults.ru.html?ss=${encodeURI(place)}${nfltUrl}&group_adults=2&no_rooms=1&group_children=0&checkin=${checking}&checkout=${checkout}&selected_currency=EUR${offsetUrl}`)
         return `https://www.booking.com/searchresults.ru.html?ss=${encodeURI(place)}${nfltUrl}&group_adults=2&no_rooms=1&group_children=0&checkin=${checking}&checkout=${checkout}&selected_currency=EUR${offsetUrl}`
     }
 
