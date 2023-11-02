@@ -6,19 +6,20 @@ const moment = require('moment')
 class ParserService {
     static actualRequestId = false
     static actualRequest = false
+    static processInWorkCount = 0
 
     static async createRequest({ place, rating = [], price = [], reportCount }) {
         //ParserService.stopParsing()
         const request = await models.RequestModel.create({ place, rating: rating.join(','), price: price.join(','), reportCount })
         await ParserService.deleteOldRequests()
-        ParserService.initRequest(request)
+        ParserService.initRequest(request, 14)
         return request
     }
 
-    static initRequest(request) {
+    static initRequest(request, processesCount) {
         ParserService.actualRequestId = request.id
         ParserService.actualRequest = request
-        ParserService.startParsingV3(request.id)
+        ParserService.startParsingV3(request.id, processesCount)
     }
 
     static async startParsing() {
@@ -93,9 +94,8 @@ class ParserService {
         }
     }
 
-    static async startParsingV3(currentRequestId) {
-        const processesCount = 14
-
+    static async startParsingV3(currentRequestId, processesCount) {
+        ParserService.processInWorkCount = processesCount
         process.setMaxListeners(processesCount)
 
         for (let i = 0; i < processesCount; i++) {
@@ -151,9 +151,6 @@ class ParserService {
                     await ParserService.postHotelsByNames(pageMaps, pageOfficialSite, hotelNames, currentRequestId, country)
                 } else {
                     await browser.close()
-                    if (ParserService.actualRequestId === currentRequestId) {
-                        ParserService.actualRequestId = false
-                    }
                     break
                 }
                 processNumber = processNumber + 1
@@ -162,9 +159,10 @@ class ParserService {
                 console.log(err)
             }
         }
+        ParserService.processInWorkCount = ParserService.processInWorkCount - 1
 
         await browser.close()
-        if (ParserService.actualRequestId === currentRequestId) {
+        if (ParserService.actualRequestId === currentRequestId && ParserService.processInWorkCount < 1) {
             ParserService.actualRequestId = false
         }
     }
