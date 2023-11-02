@@ -251,16 +251,16 @@ class ParserService {
 
             await page.type(`input[name=q]`, hotelName, {delay: 20})
 
-            await page.waitForSelector('div[data-index="0"]', { timeout: 800 })
+            await page.waitForSelector('div[data-index="0"]', { timeout: 1400 })
             await page.click('div[data-index="0"]')
 
             try {
-                await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 800 })
+                await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 1400 })
             } catch (err) {
                 if (err instanceof TimeoutError) {
-                    await page.waitForSelector('div[role="feed"]', { timeout: 800 })
+                    await page.waitForSelector('div[role="feed"]', { timeout: 1400 })
                     await page.evaluate(() => document.querySelector('div[role="feed"]').querySelectorAll('a')[1].click())
-                    await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 800 })
+                    await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 1000 })
                 }
             }
 
