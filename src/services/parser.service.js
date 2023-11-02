@@ -18,7 +18,7 @@ class ParserService {
     static initRequest(request) {
         ParserService.actualRequestId = request.id
         ParserService.actualRequest = request
-        ParserService.startParsingV2(request.id)
+        ParserService.startParsingV3(request.id)
     }
 
     static async startParsing() {
@@ -93,9 +93,16 @@ class ParserService {
         }
     }
 
-    static async startParsingV2(currentRequestId) {
-        let offset = 0
+    static async startParsingV3(currentRequestId) {
+        const processesCount = 4
 
+        for (let i = 0; i++; i < processesCount) {
+            console.log(`start process ${i + 1}`)
+            ParserService.startParsingV2(currentRequestId, i, processesCount)
+        }
+    }
+
+    static async startParsingV2(currentRequestId, i, processesCount) {
 
         const browser = await puppeteer.launch({ headless: true, devtools: true,
             executablePath: '/usr/bin/chromium-browser',
@@ -131,7 +138,10 @@ class ParserService {
             }
         });
 
+        let processNumber = 0
+
         while (ParserService.actualRequestId === currentRequestId) {
+            const offset = processNumber * 25 * processesCount + 25 * i
             try {
                 const [hotelNames, country] = await ParserService.getHotels(pageBooking, ParserService.actualRequest, offset)
                 console.log('get-hotel', country)
@@ -144,9 +154,9 @@ class ParserService {
                     }
                     break
                 }
-                offset = offset + 25
+                processNumber = processNumber + 1
             } catch (err) {
-                offset = offset + 25
+                processNumber = processNumber + 1
                 console.log(err)
             }
         }
@@ -251,16 +261,16 @@ class ParserService {
 
             await page.type(`input[name=q]`, hotelName, {delay: 20})
 
-            await page.waitForSelector('div[data-index="0"]', { timeout: 1400 })
+            await page.waitForSelector('div[data-index="0"]', { timeout: 3000 })
             await page.click('div[data-index="0"]')
 
             try {
-                await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 1400 })
+                await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 2000 })
             } catch (err) {
                 if (err instanceof TimeoutError) {
-                    await page.waitForSelector('div[role="feed"]', { timeout: 1400 })
+                    await page.waitForSelector('div[role="feed"]', { timeout: 3000 })
                     await page.evaluate(() => document.querySelector('div[role="feed"]').querySelectorAll('a')[1].click())
-                    await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 1000 })
+                    await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 2000 })
                 }
             }
 
