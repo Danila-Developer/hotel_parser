@@ -8,7 +8,7 @@ class ParserService {
     static actualRequest = false
 
     static async createRequest({ place, rating = [], price = [], reportCount }) {
-        ParserService.stopParsing()
+        //ParserService.stopParsing()
         const request = await models.RequestModel.create({ place, rating: rating.join(','), price: price.join(','), reportCount })
         await ParserService.deleteOldRequests()
         ParserService.initRequest(request)
