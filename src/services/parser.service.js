@@ -66,12 +66,12 @@ class ParserService {
 
     }
 
-    static async postHotelsByNames(hotelNames, currentRequestId, country) {
+    static async postHotelsByNames(page, page2, hotelNames, currentRequestId, country) {
         const hotels = [...hotelNames]
 
         while (hotels.length > 0 && ParserService.actualRequestId === currentRequestId) {
             try {
-                const hotelInfo = await ParserService.getEmailFromOfficialSite(hotels[0])
+                const hotelInfo = await ParserService.getEmailFromOfficialSite(page, page2, hotels[0])
 
                 if (hotelInfo?.name) {
                     const {name, emails, executionTime, officialUrl} = hotelInfo
@@ -96,13 +96,48 @@ class ParserService {
     static async startParsingV2(currentRequestId) {
         let offset = 0
 
+        const browser = await puppeteer.launch({ headless: true, devtools: true,
+            executablePath: '/usr/bin/chromium-browser',
+            args: ['--no-sandbox']
+        })
+        const pageBooking = await browser.newPage()
+        const pageMaps = await browser.newPage()
+        const pageOfficialSite = await browser.newPage()
+
+        await pageMaps.waitForNavigation({ timeout: 6000 })
+        await pageOfficialSite.waitForNavigation({ timeout: 6000 })
+
+        await pageBooking.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
+
+        await pageBooking.setJavaScriptEnabled(false)
+        await pageBooking.setRequestInterception(true);
+        pageBooking.on('request', request => {
+            if (['image', 'font', 'stylesheet'].includes(request.resourceType())) {
+                request.abort();
+            } else {
+                request.continue();
+            }
+        })
+
+        await pageMaps.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
+        await pageOfficialSite.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
+        await pageOfficialSite.setRequestInterception(true);
+        pageOfficialSite.on('request', request => {
+            if (['image', 'font'].includes(request.resourceType())) {
+                request.abort();
+            } else {
+                request.continue();
+            }
+        });
+
         while (ParserService.actualRequestId === currentRequestId) {
             try {
-                const [hotelNames, country] = await ParserService.getHotels(ParserService.actualRequest, offset)
+                const [hotelNames, country] = await ParserService.getHotels(pageBooking, ParserService.actualRequest, offset)
                 console.log('get-hotel', country)
                 if (hotelNames?.length > 0) {
-                    await ParserService.postHotelsByNames(hotelNames, currentRequestId, country)
+                    await ParserService.postHotelsByNames(pageMaps, pageOfficialSite, hotelNames, currentRequestId, country)
                 } else {
+                    await browser.close()
                     if (ParserService.actualRequestId === currentRequestId) {
                         ParserService.actualRequestId = false
                     }
@@ -115,6 +150,7 @@ class ParserService {
             }
         }
 
+        await browser.close()
         if (ParserService.actualRequestId === currentRequestId) {
             ParserService.actualRequestId = false
         }
@@ -125,25 +161,14 @@ class ParserService {
         ParserService.actualRequest = false
     }
 
-    static async getHotels(request, offset = 0) {
+    static async getHotels(page, request, offset = 0) {
         const url = ParserService.getBookingUrl(request, offset)
         //console.log(url)
-        const browser = await puppeteer.launch({ headless: true, devtools: true,
-            executablePath: '/usr/bin/chromium-browser',
-            args: ['--no-sandbox']
-        })
-        const page = await browser.newPage()
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
-
-        await page.setJavaScriptEnabled(false)
-        await page.setRequestInterception(true);
-        page.on('request', request => {
-            if (['image', 'font', 'stylesheet'].includes(request.resourceType())) {
-                request.abort();
-            } else {
-                request.continue();
-            }
-        })
+        // const browser = await puppeteer.launch({ headless: true, devtools: true,
+        //     executablePath: '/usr/bin/chromium-browser',
+        //     args: ['--no-sandbox']
+        // })
+        // const page = await browser.newPage()
 
         await page.goto(url, { waitUntil: 'networkidle2' })
 
@@ -177,7 +202,7 @@ class ParserService {
         }
 
 
-        await browser.close()
+        //await browser.close()
         //console.log(names)
         return [names, country]
     }
@@ -210,18 +235,17 @@ class ParserService {
         return `https://www.booking.com/searchresults.ru.html?ss=${encodeURI(place)}${nfltUrl}&group_adults=2&no_rooms=1&group_children=0&checkin=${checking}&checkout=${checkout}&selected_currency=EUR${offsetUrl}`
     }
 
-    static async getEmailFromOfficialSite(hotelName) {
+    static async getEmailFromOfficialSite(page, page2, hotelName) {
         const start = new Date().getTime()
-        let browser
         console.log(2)
         try {
-            browser = await puppeteer.launch({ headless: true, devtools: true,
-                executablePath: '/usr/bin/chromium-browser',
-                args: ['--no-sandbox']
-            })
+            // const browser = await puppeteer.launch({ headless: true, devtools: true,
+            //     executablePath: '/usr/bin/chromium-browser',
+            //     args: ['--no-sandbox']
+            // })
+            //
+            // const page = await browser.newPage()
 
-            const page = await browser.newPage()
-            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
             await page.goto('https://www.google.ru/maps/', { waitUntil: 'networkidle2' })
 
             await page.type(`input[name=q]`, hotelName, {delay: 20})
@@ -242,21 +266,13 @@ class ParserService {
             const url = await page.$eval('a[data-tooltip="Перейти на сайт"]', (element) => element.href)
 
             if (url) {
-                const page2 = await browser.newPage()
-                await page2.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
-                await page2.setRequestInterception(true);
-                page2.on('request', request => {
-                    if (['image', 'font'].includes(request.resourceType())) {
-                        request.abort();
-                    } else {
-                        request.continue();
-                    }
-                });
+                //const page2 = await browser.newPage()
+
                 await page2.goto(url, { waitUntil: 'networkidle2' })
                 const htmlPage = await page2.evaluate(() => document.documentElement.innerHTML)
                 const match = htmlPage.match(/[\w.-]+@[\w.-]+\.\w+/gu)
 
-                await browser.close()
+                //await browser.close()
 
                 if (match) {
                     const emails = Array.from(new Set(match.filter((item => {
@@ -281,7 +297,7 @@ class ParserService {
                     }
                 }
             } else {
-                await browser.close()
+                //await browser.close()
                 return {
                     name: hotelName,
                     emails: [],
@@ -290,7 +306,7 @@ class ParserService {
                 }
             }
         } catch (error) {
-            browser ? await browser.close() : null
+            //browser ? await browser.close() : null
             console.log(error)
                 return {
                     name: hotelName,
