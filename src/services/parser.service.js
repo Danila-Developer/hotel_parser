@@ -69,7 +69,7 @@ class ParserService {
 
     static async postHotelsByNames(page, page2, hotelNames, currentRequestId, country) {
         const hotels = [...hotelNames]
-
+        console.log(hotels)
         while (hotels.length > 0 && ParserService.actualRequestId === currentRequestId) {
             try {
                 const hotelInfo = await ParserService.getEmailFromOfficialSite(page, page2, hotels[0])
