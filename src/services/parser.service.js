@@ -10,7 +10,6 @@ class ParserService {
     static hotelsInWork = {}
 
     static async createRequest({ place, rating = [], price = [], reportCount }) {
-        //ParserService.stopParsing()
         const request = await models.RequestModel.create({ place, rating: rating.join(','), price: price.join(','), reportCount })
         await ParserService.deleteOldRequests()
         ParserService.initRequest(request, 14)
@@ -23,69 +22,25 @@ class ParserService {
         ParserService.startParsingV3(request.id, processesCount)
     }
 
-    // static async startParsing() {
-    //     let offset = 0
-    //
-    //     while (ParserService.actualRequestId) {
-    //         try {
-    //             const [hotelNames, country]  = await ParserService.getHotels(ParserService.actualRequest, offset)
-    //             if (hotelNames?.length > 0 && country) {
-    //                 for (let i in hotelNames) {
-    //                     if (ParserService.actualRequestId) {
-    //                         const hotelInfo = await ParserService.getEmailFromOfficialSite(hotelNames[i])
-    //
-    //                         if (hotelInfo?.name) {
-    //                             const { name, emails, executionTime, officialUrl} = hotelInfo
-    //                             try {
-    //                                 await models.HotelModel.create({ name, email: emails?.join(','), executionTime, officialUrl, country, requestId: ParserService.actualRequestId })
-    //                             } catch (err) {
-    //                                 console.log(err)
-    //                             }
-    //                         }
-    //
-    //                     } else {
-    //                         console.log('parsing stopped')
-    //                         console.log(333)
-    //                         break
-    //                     }
-    //                 }
-    //                 offset = offset + 25
-    //             } else {
-    //                 ParserService.actualRequestId = false
-    //                 console.log('parsing stopped')
-    //                 console.log(222)
-    //                 console.log(ParserService.actualRequestId)
-    //                 console.log(ParserService.actualRequest)
-    //                 break
-    //             }
-    //         } catch (err) {
-    //             offset = offset + 25
-    //             console.log('retry')
-    //             console.log(err)
-    //         }
-    //
-    //     }
-    //
-    // }
 
     static async postHotelsByNames(page, page2, hotelNames, currentRequestId, country) {
         const hotels = [...hotelNames]
 
         while (hotels.length > 0 && ParserService.actualRequestId === currentRequestId) {
             try {
-                if (!ParserService.hotelsInWork[currentRequestId].includes(hotels[0])) {
+                //if (!ParserService.hotelsInWork[currentRequestId].includes(hotels[0])) {
+                    ParserService.hotelsInWork = {
+                        ...ParserService.hotelsInWork,
+                        [currentRequestId]: [
+                            ...ParserService.hotelsInWork[currentRequestId],
+                            name
+                        ]
+                    }
                     const hotelInfo = await ParserService.getEmailFromOfficialSite(page, page2, hotels[0])
 
                     if (hotelInfo?.name) {
                         const {name, emails, executionTime, officialUrl} = hotelInfo
                         console.log('post', country)
-                        ParserService.hotelsInWork = {
-                            ...ParserService.hotelsInWork,
-                            [currentRequestId]: [
-                                ...ParserService.hotelsInWork[currentRequestId],
-                                name
-                            ]
-                        }
                         await models.HotelModel.create({
                             name,
                             email: emails?.join(','),
@@ -95,9 +50,9 @@ class ParserService {
                             requestId: currentRequestId
                         })
                     }
-                } else {
-                    console.log('double!')
-                }
+                // } else {
+                //     console.log('double!')
+                // }
 
                 hotels.shift()
             } catch (err) {
