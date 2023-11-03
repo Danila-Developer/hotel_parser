@@ -216,8 +216,9 @@ class ParserService {
         //await browser.close()
         //console.log(names)
         console.log('get-hotel', country)
+        console.log(url)
         console.log(names)
-        console.log()
+
         return [names, country]
     }
 
