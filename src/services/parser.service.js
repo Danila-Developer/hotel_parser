@@ -7,6 +7,7 @@ class ParserService {
     static actualRequestId = false
     static actualRequest = false
     static processInWorkCount = {}
+    static hotelsInWork = {}
 
     static async createRequest({ place, rating = [], price = [], reportCount }) {
         //ParserService.stopParsing()
@@ -72,20 +73,32 @@ class ParserService {
 
         while (hotels.length > 0 && ParserService.actualRequestId === currentRequestId) {
             try {
-                const hotelInfo = await ParserService.getEmailFromOfficialSite(page, page2, hotels[0])
+                if (!ParserService.hotelsInWork[currentRequestId].includes(hotels[0])) {
+                    const hotelInfo = await ParserService.getEmailFromOfficialSite(page, page2, hotels[0])
 
-                if (hotelInfo?.name) {
-                    const {name, emails, executionTime, officialUrl} = hotelInfo
-                    console.log('post', country)
-                    await models.HotelModel.create({
-                        name,
-                        email: emails?.join(','),
-                        executionTime,
-                        officialUrl,
-                        country,
-                        requestId: currentRequestId
-                    })
+                    if (hotelInfo?.name) {
+                        const {name, emails, executionTime, officialUrl} = hotelInfo
+                        console.log('post', country)
+                        ParserService.hotelsInWork = {
+                            ...ParserService.hotelsInWork,
+                            [currentRequestId]: [
+                                ...ParserService.hotelsInWork[currentRequestId],
+                                name
+                            ]
+                        }
+                        await models.HotelModel.create({
+                            name,
+                            email: emails?.join(','),
+                            executionTime,
+                            officialUrl,
+                            country,
+                            requestId: currentRequestId
+                        })
+                    }
+                } else {
+                    console.log('double!')
                 }
+
                 hotels.shift()
             } catch (err) {
                 hotels.shift()
@@ -96,6 +109,7 @@ class ParserService {
 
     static async startParsingV3(currentRequestId, processesCount) {
         ParserService.processInWorkCount = { ...ParserService.processInWorkCount, [currentRequestId]: processesCount }
+        ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [currentRequestId]: [] }
         //process.setMaxListeners(processesCount)
 
         for (let i = 0; i < processesCount; i++) {
@@ -164,6 +178,7 @@ class ParserService {
         await browser.close()
         if (ParserService.actualRequestId === currentRequestId && ParserService.processInWorkCount[currentRequestId] < 1) {
             ParserService.actualRequestId = false
+            ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [currentRequestId]: [] }
         }
     }
 
