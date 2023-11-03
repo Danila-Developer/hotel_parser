@@ -69,7 +69,7 @@ class ParserService {
 
     static async postHotelsByNames(page, page2, hotelNames, currentRequestId, country) {
         const hotels = [...hotelNames]
-        console.log(hotels)
+
         while (hotels.length > 0 && ParserService.actualRequestId === currentRequestId) {
             try {
                 const hotelInfo = await ParserService.getEmailFromOfficialSite(page, page2, hotels[0])
@@ -146,7 +146,7 @@ class ParserService {
             const offset = processNumber * 25 * processesCount + 25 * i
             try {
                 const [hotelNames, country] = await ParserService.getHotels(pageBooking, ParserService.actualRequest, offset)
-                console.log('get-hotel', country)
+
                 if (hotelNames?.length > 0) {
                     await ParserService.postHotelsByNames(pageMaps, pageOfficialSite, hotelNames, currentRequestId, country)
                 } else {
@@ -215,6 +215,9 @@ class ParserService {
 
         //await browser.close()
         //console.log(names)
+        console.log('get-hotel', country)
+        console.log(names)
+        console.log()
         return [names, country]
     }
 
