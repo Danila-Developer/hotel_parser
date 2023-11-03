@@ -29,13 +29,13 @@ class ParserService {
         while (hotels.length > 0 && ParserService.actualRequestId === currentRequestId) {
             try {
                 //if (!ParserService.hotelsInWork[currentRequestId].includes(hotels[0])) {
-                    ParserService.hotelsInWork = {
-                        ...ParserService.hotelsInWork,
-                        [currentRequestId]: [
-                            ...ParserService.hotelsInWork[currentRequestId],
-                            name
-                        ]
-                    }
+                //     ParserService.hotelsInWork = {
+                //         ...ParserService.hotelsInWork,
+                //         [currentRequestId]: [
+                //             ...ParserService.hotelsInWork[currentRequestId],
+                //             name
+                //         ]
+                //     }
                     const hotelInfo = await ParserService.getEmailFromOfficialSite(page, page2, hotels[0])
 
                     if (hotelInfo?.name) {
