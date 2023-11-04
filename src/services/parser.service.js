@@ -2,7 +2,6 @@ const models = require('../models')
 const puppeteer = require('puppeteer')
 const { TimeoutError } = require('puppeteer')
 const moment = require('moment')
-const axios = require('axios')
 const _ = require('lodash')
 
 class ParserService {
@@ -79,9 +78,9 @@ class ParserService {
     }
 
     static async getBrowser(setPageBookingJavaScriptDisabled = true) {
-        const browser = await puppeteer.launch({ headless: true, devtools: true
-            // executablePath: '/usr/bin/chromium-browser',
-            // args: ['--no-sandbox']
+        const browser = await puppeteer.launch({ headless: true, devtools: true,
+            executablePath: '/usr/bin/chromium-browser',
+            args: ['--no-sandbox']
         })
         const pageBooking = await browser.newPage()
         const pageMaps = await browser.newPage()
