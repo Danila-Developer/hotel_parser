@@ -206,25 +206,27 @@ class ParserService {
     }
 
     static async getHotelsWithCheckDouble(page, request, processMetaData) {
-        if (request.destType === 'country') {
-            const [names, country, uf] = await ParserService.getHotels(page, request, processMetaData)
-            if (_.isArray(names)) {
-                const uniqueNames = names.filter(name => !ParserService.hotelsInWork[request.id].includes(name))
+        const [names, country, uf] = await ParserService.getHotels(page, request, processMetaData)
 
-                if (_.size(uniqueNames) > 0) {
-                    return [uniqueNames, country]
-                } else {
-                    ParserService.metaDataInWork = {
-                        ...ParserService.metaDataInWork,
-                        [request.id]: [...ParserService.metaDataInWork[request.id].filter(item => item.name !== uf)]
-                    }
+        if (_.isArray(names)) {
+            const uniqueNames = names.filter(name => !ParserService.hotelsInWork[request.id].includes(name))
 
-                    if (_.size(ParserService.metaDataInWork[request.id]) <= 0) {
-                        return [[], country, uf]
-                    }
-
-                    return await ParserService.getHotelsWithCheckDouble(page, request, processMetaData)
+            if (_.size(uniqueNames) > 0) {
+                return [uniqueNames, country, uf]
+            }
+            if (request.destType === 'country') {
+                ParserService.metaDataInWork = {
+                    ...ParserService.metaDataInWork,
+                    [request.id]: [...ParserService.metaDataInWork[request.id].filter(item => item.name !== uf)]
                 }
+
+                if (_.size(ParserService.metaDataInWork[request.id]) <= 0) {
+                    return [[], country, uf]
+                }
+
+                return await ParserService.getHotelsWithCheckDouble(page, request, processMetaData)
+            } else {
+                return [[], country, uf]
             }
         }
 
@@ -294,7 +296,7 @@ class ParserService {
 
             await page.type(`input[name=q]`, hotelName, {delay: 20})
 
-            await page.waitForSelector('div[data-index="0"]')
+            await page.waitForSelector('div[data-index="0"]', { timeout: 10000 })
             await page.click('div[data-index="0"]')
 
             try {
@@ -323,7 +325,8 @@ class ParserService {
                         return  !/\.jpg$/ug.test(item) &&
                                 !/[0-9]$/ug.test(item) &&
                                 !/\.png$/ug.test(item) &&
-                                !/wixpress/ug.test(item)
+                                !/wixpress/ug.test(item) &&
+                                !/@sentry.io/ug.test(item)
                     }))))
 
                     return {
