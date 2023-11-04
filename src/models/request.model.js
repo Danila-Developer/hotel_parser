@@ -25,6 +25,10 @@ const RequestModel = sequelize.define(
             type: DataTypes.STRING,
             allowNull: true
         },
+        destType: {
+            type: DataTypes.STRING,
+            allowNull: true
+        }
     },
     {
         updatedAt: false,

@@ -19,7 +19,8 @@ class SearchService {
                 label: item.label,
                 label1: item.label1,
                 label2: item.label2,
-                photo_uri: item.photo_uri
+                photo_uri: item.photo_uri,
+                destType: item.dest_type
             }
         })
     }
