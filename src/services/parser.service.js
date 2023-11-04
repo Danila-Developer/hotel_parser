@@ -274,6 +274,7 @@ class ParserService {
         }
 
         const url = `https://www.booking.com/searchresults.ru.html?ss=${encodeURI(place)}${nfltUrl}&group_adults=2&no_rooms=1&group_children=0&checkin=${checking}&checkout=${checkout}&selected_currency=EUR${offsetUrl}`
+        console.log(url)
         return [url, uf]
     }
 
@@ -400,7 +401,7 @@ class ParserService {
     static async setRequestMetaData(request) {
         try {
             if (request?.destType === 'country') {
-                const url = ParserService.getBookingUrl(request, { processNumber: 0, processesCount: 0, i: 0 })
+                const [url, uf] = ParserService.getBookingUrl(request, { processNumber: 0, processesCount: 0, i: 0 })
 
                 const [browser, pageBooking, pageMaps, pageOfficialSite] = await ParserService.getBrowser(false)
 
