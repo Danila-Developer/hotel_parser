@@ -275,6 +275,7 @@ class ParserService {
 
         const url = `https://www.booking.com/searchresults.ru.html?ss=${encodeURI(place)}${nfltUrl}&group_adults=2&no_rooms=1&group_children=0&checkin=${checking}&checkout=${checkout}&selected_currency=EUR${offsetUrl}`
         console.log(url)
+        console.log(ParserService.metaDataInWork)
         return [url, uf]
     }
 
@@ -429,8 +430,6 @@ class ParserService {
                         ...cities.map(item => ({ name: item, value: 0 }))
                     ]
                 }
-
-                console.log(ParserService.metaDataInWork)
 
                 await browser.close()
             }
