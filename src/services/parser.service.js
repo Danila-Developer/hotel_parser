@@ -397,7 +397,7 @@ class ParserService {
                             .map(item => item.getAttribute('data-filters-item').split(':')[1])
             })
 
-            ParserService.encodeURIComponent = {
+            ParserService.metaDataInWork = {
                 ...ParserService.metaDataInWork,
                 [request.id]: [
                     ...ParserService.metaDataInWork[request.id],
