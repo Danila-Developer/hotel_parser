@@ -216,7 +216,7 @@ class ParserService {
                 } else {
                     ParserService.metaDataInWork = {
                         ...ParserService.metaDataInWork,
-                        ...ParserService.metaDataInWork[request.id].filter(item => item.name !== uf)
+                        [request.id]: [...ParserService.metaDataInWork[request.id].filter(item => item.name !== uf)]
                     }
 
                     if (_.size(ParserService.metaDataInWork[request.id]) <= 0) {
