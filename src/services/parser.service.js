@@ -14,7 +14,7 @@ class ParserService {
     static async createRequest({ place, rating = [], price = [], reportCount, destType }) {
         const request = await models.RequestModel.create({ place, rating: rating.join(','), price: price.join(','), reportCount, destType: destType })
         await ParserService.deleteOldRequests()
-        ParserService.initRequest(request, 6)
+        ParserService.initRequest(request, 16)
         return request
     }
 
