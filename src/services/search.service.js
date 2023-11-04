@@ -4,6 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const ParserService = require('./parser.service')
 const { Op } = require("sequelize")
+const _ = require('lodash')
 
 class SearchService {
     static async getSearch(query) {
@@ -26,19 +27,21 @@ class SearchService {
     }
 
     static async getRequestById(request) {
-        const data = await models.RequestModel.findAll({where: {id: request}, raw: true, order: [['createdAt', 'DESC']]})
-        console.log(ParserService.actualRequestId)
+        const response = await models.RequestModel.findAll({where: {id: request}, raw: true, order: [['createdAt', 'DESC']]})
+        const data = _.get(response, '[0]', {})
 
-        return Promise.all(data.map(async item => {
-            return {
-                ...item,
-                isRunning: item.id === ParserService.actualRequestId,
-                totalHotels: (await models.HotelModel.count({
-                    raw: true,
-                    where: {requestId: item.id, email: {[Op.not]: ''}}
-                }))
-            }
-        }))
+        return {
+            ...data,
+            status: data?.id === ParserService.actualRequestId
+                ? 'isRunning'
+                : ParserService.requestsQueue.filter(request => request.id === data?.id).length > 0
+                    ? 'isPending'
+                    : 'completed',
+            totalHotels: (await models.HotelModel.count({
+                raw: true,
+                where: {requestId: data?.id, email: {[Op.not]: ''}}
+            }))
+        }
     }
 
     static async getAllRequests() {
@@ -47,7 +50,11 @@ class SearchService {
         return Promise.all(data.map(async item => {
             return {
                 ...item,
-                isRunning: item.id === ParserService.actualRequestId,
+                status: item.id === ParserService.actualRequestId
+                    ? 'isRunning'
+                    : ParserService.requestsQueue.filter(request => request.id === item.id).length > 0
+                        ? 'isPending'
+                        : 'completed',
                 totalHotels: (await models.HotelModel.count({
                     raw: true,
                     where: {requestId: item.id, email: {[Op.not]: ''}}

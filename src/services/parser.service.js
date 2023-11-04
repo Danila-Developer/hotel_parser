@@ -10,11 +10,18 @@ class ParserService {
     static processInWorkCount = {}
     static hotelsInWork = {}
     static metaDataInWork = {}
+    static requestsQueue = []
 
     static async createRequest({ place, rating = [], price = [], reportCount, destType }) {
         const request = await models.RequestModel.create({ place, rating: rating.join(','), price: price.join(','), reportCount, destType: destType })
         await ParserService.deleteOldRequests()
-        ParserService.initRequest(request, 13)
+
+        if (ParserService.actualRequestId) {
+            ParserService.requestsQueue = [...ParserService.requestsQueue, request]
+        } else {
+            ParserService.initRequest(request)
+        }
+
         return request
     }
 
@@ -62,7 +69,8 @@ class ParserService {
         }
     }
 
-    static async startParsingV3(request, processesCount) {
+    static async startParsingV3(request) {
+        const processesCount = 2
         ParserService.actualRequestId = request.id
         ParserService.processInWorkCount = { ...ParserService.processInWorkCount, [request.id]: processesCount }
         ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [request.id]: [] }
@@ -154,6 +162,15 @@ class ParserService {
         if (ParserService.actualRequestId === currentRequestId && ParserService.processInWorkCount[currentRequestId] < 1) {
             ParserService.actualRequestId = false
             ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [currentRequestId]: [] }
+        }
+        if (ParserService.processInWorkCount[currentRequestId] < 1) {
+            if (_.size(ParserService.requestsQueue) > 0) {
+                const [initRequest, ...queue] = ParserService.requestsQueue
+
+                ParserService.initRequest(initRequest)
+
+                ParserService.requestsQueue = queue
+            }
         }
     }
 
@@ -270,10 +287,10 @@ class ParserService {
                         _.invoke(ParserService.metaDataInWork, `${id}.shift`)
                     }
                 } else {
-                    nfltUrl = `&nflt=${priceUrl + ';' + ratingUrl}`
+                    nfltUrl = `&nflt=${encodeURIComponent(priceUrl + ';' + ratingUrl)}`
                 }
             } else {
-                nfltUrl = `&nflt=${priceUrl + ';' + ratingUrl}`
+                nfltUrl = `&nflt=${encodeURIComponent(priceUrl + ';' + ratingUrl)}`
             }
         }
 
@@ -287,13 +304,6 @@ class ParserService {
         const start = new Date().getTime()
         console.log(2)
         try {
-            // const browser = await puppeteer.launch({ headless: true, devtools: true,
-            //     executablePath: '/usr/bin/chromium-browser',
-            //     args: ['--no-sandbox']
-            // })
-            //
-            // const page = await browser.newPage()
-
             await page.goto('https://www.google.ru/maps/', { waitUntil: 'networkidle2' })
 
             await page.type(`input[name=q]`, hotelName, {delay: 20})
@@ -314,13 +324,9 @@ class ParserService {
             const url = await page.$eval('a[data-tooltip="Перейти на сайт"]', (element) => element.href)
 
             if (url) {
-                //const page2 = await browser.newPage()
-
                 await page2.goto(url, { waitUntil: 'networkidle2' })
                 const htmlPage = await page2.evaluate(() => document.documentElement.innerHTML)
                 const match = htmlPage.match(/[\w.-]+@[\w.-]+\.\w+/gu)
-
-                //await browser.close()
 
                 if (match) {
                     const emails = Array.from(new Set(match.filter((item => {
@@ -346,7 +352,6 @@ class ParserService {
                     }
                 }
             } else {
-                //await browser.close()
                 return {
                     name: hotelName,
                     emails: [],
@@ -355,7 +360,6 @@ class ParserService {
                 }
             }
         } catch (error) {
-            //browser ? await browser.close() : null
             console.log(error)
                 return {
                     name: hotelName,
