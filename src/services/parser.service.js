@@ -269,6 +269,8 @@ class ParserService {
                     if (ParserService.metaDataInWork[id][0]?.value > 976) {
                         _.invoke(ParserService.metaDataInWork, `${id}.shift`)
                     }
+                } else {
+                    nfltUrl = `&nflt=${priceUrl + ';' + ratingUrl}`
                 }
             } else {
                 nfltUrl = `&nflt=${priceUrl + ';' + ratingUrl}`
