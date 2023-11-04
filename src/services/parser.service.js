@@ -203,6 +203,7 @@ class ParserService {
         console.log('get-hotel', country)
         console.log(url)
         console.log(names)
+        console.log(ParserService.metaDataInWork)
 
         return [names, country]
     }
