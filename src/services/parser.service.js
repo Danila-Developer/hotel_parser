@@ -68,7 +68,6 @@ class ParserService {
                     }
                 } else {
                     console.log('double!')
-                    return true
                 }
 
                 hotels.shift()
@@ -155,7 +154,7 @@ class ParserService {
 
                 if (hotelNames?.length > 0) {
                     const errorsCount = await ParserService.postHotelsByNames(pageMaps, pageOfficialSite, hotelNames, currentRequestId, country)
-                    console.log(errorsCount)
+                    console.log('errorsCount', errorsCount)
                     if (errorsCount > 12) {
                         ParserService.pauseParsing(currentRequestId)
                     }
@@ -337,7 +336,7 @@ class ParserService {
 
     static async getEmailFromOfficialSite(page, page2, hotelName) {
         const start = new Date().getTime()
-        console.log(2)
+
         try {
             await page.goto('https://www.google.ru/maps/', { waitUntil: 'networkidle2' })
 
