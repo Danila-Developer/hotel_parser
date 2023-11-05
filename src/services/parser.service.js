@@ -14,6 +14,7 @@ class ParserService {
     static requestsQueue = []
     static settings = {}
     static isPausing = false
+    static speedInWork = {}
 
     static async createRequest({ place, rating = [], price = [], reportCount, destType }) {
         const request = await models.RequestModel.create({ place, rating: rating.join(','), price: price.join(','), reportCount, destType: destType })
@@ -55,6 +56,40 @@ class ParserService {
                     const hotelInfo = await ParserService.getEmailFromOfficialSite(page, page2, hotels[0])
 
                     if (hotelInfo?.name) {
+                        const sizeSpeedInWork = _.size(ParserService.speedInWork[currentRequestId])
+                        if (sizeSpeedInWork === 0) {
+                            const now = moment()
+                            ParserService.speedInWork = {
+                                ...ParserService.speedInWork,
+                                [currentRequestId]: [
+                                    { time: now, count: 1 }
+                                ]
+                            }
+                        } else {
+                            const now = moment()
+                            if (now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'minutes') < 0) {
+                                const last = ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1]
+                                const arr = ParserService.speedInWork[currentRequestId].slice(0, sizeSpeedInWork - 1)
+                                _.set(last, 'count', last.count + 1)
+                                ParserService.speedInWork = {
+                                    ...ParserService.speedInWork,
+                                    [currentRequestId]: [
+                                        ...arr,
+                                        last
+                                ],
+                                }
+                            } else {
+                                ParserService.speedInWork = {
+                                    ...ParserService.speedInWork,
+                                    [currentRequestId]: [
+                                        ...ParserService.speedInWork[currentRequestId],
+                                        { time: now, count: 1 }
+                                    ]
+                                }
+                            }
+                        }
+                        console.log(ParserService.speedInWork)
+
                         const {name, emails, executionTime, officialUrl} = hotelInfo
                         console.log('post', country)
                         await models.HotelModel.create({
@@ -86,6 +121,7 @@ class ParserService {
         ParserService.actualRequestId = request.id
         ParserService.processInWorkCount = { ...ParserService.processInWorkCount, [request.id]: processesCount }
         ParserService.actualRequestInWork = { ...ParserService.actualRequestInWork, [request.id]: request }
+        ParserService.speedInWork = { ...ParserService.speedInWork, [request.id]: [] }
 
         if (!ParserService.isPausing) {
             ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [request.id]: [] }
@@ -155,8 +191,12 @@ class ParserService {
                 if (hotelNames?.length > 0) {
                     const errorsCount = await ParserService.postHotelsByNames(pageMaps, pageOfficialSite, hotelNames, currentRequestId, country)
                     console.log('errorsCount', errorsCount)
-                    if (errorsCount > 12) {
-                        ParserService.pauseParsing(currentRequestId)
+                    const sizeSpeedInWork = _.size(ParserService.speedInWork[currentRequestId])
+                    const now = moment()
+                    if (now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'minutes') > 0) {
+                        if (ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].count < processesCount) {
+                            ParserService.pauseParsing(currentRequestId)
+                        }
                     }
                 } else {
                     if (ParserService.actualRequestInWork[currentRequestId].destType === 'country') {
