@@ -41,7 +41,7 @@ class ParserService {
     static async postHotelsByNames(page, page2, hotelNames, currentRequestId, country) {
         const hotels = [...hotelNames]
 
-        let errorsCount = 0
+        // let errorsCount = 0
 
         while (hotels.length > 0 && ParserService.actualRequestId === currentRequestId) {
             try {
@@ -100,7 +100,7 @@ class ParserService {
                 hotels.shift()
             } catch (err) {
                 hotels.shift()
-                errorsCount = errorsCount + 1
+                //errorsCount = errorsCount + 1
                 console.log(err)
             }
         }
@@ -134,17 +134,7 @@ class ParserService {
         try {
             const browser = await puppeteer.launch({ headless: true, devtools: true,
                 executablePath: '/usr/bin/chromium-browser',
-                args: [
-                    '--no-sandbox',
-                    // '--disable-setuid-sandbox',
-                    // '--disable-dev-shm-usage',
-                    // '--disable-accelerated-2d-canvas',
-                    // '--no-first-run',
-                    // '--no-zygote',
-                    // '--single-process',
-                    // '--disable-gpu',
-                    // '--ignore-certificate-errors'
-                ]
+                args: ['--no-sandbox']
             })
             const pageBooking = await browser.newPage()
             const pageMaps = await browser.newPage()
@@ -192,16 +182,7 @@ class ParserService {
                 const [hotelNames, country] = await ParserService.getHotelsWithCheckDouble(pageBooking, ParserService.actualRequestInWork[currentRequestId], { processNumber, processesCount, i })
 
                 if (hotelNames?.length > 0) {
-                    const errorsCount = await ParserService.postHotelsByNames(pageMaps, pageOfficialSite, hotelNames, currentRequestId, country)
-                    console.log('errorsCount', errorsCount)
-                    //const sizeSpeedInWork = _.size(ParserService.speedInWork[currentRequestId])
-                    //const now = moment()
-                    // if (now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'minutes') > 0) {
-                    //     if (ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].count < processesCount) {
-                    //         console.log('pause')
-                    //         ParserService.pauseParsing(currentRequestId)
-                    //     }
-                    // }
+                    await ParserService.postHotelsByNames(pageMaps, pageOfficialSite, hotelNames, currentRequestId, country)
                 } else {
                     if (ParserService.actualRequestInWork[currentRequestId].destType === 'country') {
                         if (_.size(ParserService.metaDataInWork[currentRequestId]) === 0) {
@@ -237,12 +218,6 @@ class ParserService {
             }
         }
     }
-
-    // static pauseParsing(requestId) {
-    //     ParserService.isPausing = true
-    //     ParserService.requestsQueue = [ParserService.actualRequestInWork[requestId], ...ParserService.requestsQueue]
-    //     ParserService.actualRequestId = false
-    // }
 
     static stopParsing() {
         ParserService.actualRequestId = false
@@ -289,9 +264,6 @@ class ParserService {
             }).map(name => name.name)
         }
 
-
-        //await browser.close()
-        //console.log(names)
         console.log('get-hotel', country)
         console.log(url)
         console.log(names)
