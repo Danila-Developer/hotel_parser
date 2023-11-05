@@ -345,7 +345,7 @@ class ParserService {
             await page.type(`input[name=q]`, hotelName, {delay: 20})
 
             const startDataIndex = new Date().getTime()
-            await page.waitForSelector('div[data-index="0"]', {timeout: timeout.dataIndex * 2 })
+            await page.waitForSelector('div[data-index="0"]', {timeout: timeout.dataIndex * 4 })
             const endDataIndex = new Date().getTime()
 
             await page.click('div[data-index="0"]')
@@ -354,7 +354,7 @@ class ParserService {
                 await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 7000 })
             } catch (err) {
                 if (err instanceof TimeoutError) {
-                    await page.waitForSelector('div[role="feed"]', {timeout: timeout.dataIndex * 2 })
+                    await page.waitForSelector('div[role="feed"]', {timeout: timeout.dataIndex * 4 })
                     await page.evaluate(() => document.querySelector('div[role="feed"]').querySelectorAll('a')[1].click())
                     await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 5000 })
                 }
