@@ -173,12 +173,13 @@ class ParserService {
     }
 
     static async startParsingV2(currentRequestId, i, processesCount) {
-        const [browser, pageBooking, pageMaps, pageOfficialSite] = await ParserService.getBrowser()
 
         let processNumber = 0
 
         while (ParserService.actualRequestId === currentRequestId) {
+            const [browser, pageBooking, pageMaps, pageOfficialSite] = await ParserService.getBrowser()
             try {
+
                 const [hotelNames, country] = await ParserService.getHotelsWithCheckDouble(pageBooking, ParserService.actualRequestInWork[currentRequestId], { processNumber, processesCount, i })
 
                 if (hotelNames?.length > 0) {
@@ -195,15 +196,18 @@ class ParserService {
                     }
                 }
                 processNumber = processNumber + 1
-
+                await browser.close()
             } catch (err) {
+                await browser.close()
                 processNumber = processNumber + 1
                 console.log(err)
+            } finally {
+                await browser?.close()
             }
         }
         ParserService.processInWorkCount[currentRequestId] = ParserService.processInWorkCount[currentRequestId] - 1
         console.log(ParserService.processInWorkCount)
-        await browser.close()
+        //await browser.close()
         if (ParserService.actualRequestId === currentRequestId && ParserService.processInWorkCount[currentRequestId] < 1) {
             ParserService.actualRequestId = false
             ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [currentRequestId]: [] }
