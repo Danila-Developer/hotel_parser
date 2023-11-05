@@ -13,7 +13,7 @@ class ParserService {
     static metaDataInWork = {}
     static requestsQueue = []
     static settings = {}
-    static isPausing = false
+    //static isPausing = false
     //static speedInWork = {}
 
     static async createRequest({ place, rating = [], price = [], reportCount, destType }) {
@@ -113,15 +113,16 @@ class ParserService {
         ParserService.actualRequestId = request.id
         ParserService.processInWorkCount = { ...ParserService.processInWorkCount, [request.id]: processesCount }
         ParserService.actualRequestInWork = { ...ParserService.actualRequestInWork, [request.id]: request }
+        ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [request.id]: [] }
+        ParserService.metaDataInWork = { ...ParserService.metaDataInWork, [request.id]: [] }
+        await ParserService.setRequestMetaData(ParserService.actualRequestInWork[request.id])
         //ParserService.speedInWork = { ...ParserService.speedInWork, [request.id]: [] }
 
-        if (!ParserService.isPausing) {
-            ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [request.id]: [] }
-            ParserService.metaDataInWork = { ...ParserService.metaDataInWork, [request.id]: [] }
-            await ParserService.setRequestMetaData(ParserService.actualRequestInWork[request.id])
-        }
+        // if (!ParserService.isPausing) {
+        //
+        // }
 
-        ParserService.isPausing = false
+        //ParserService.isPausing = false
 
         for (let i = 0; i < processesCount; i++) {
             console.log(`start process ${i + 1}`)
@@ -135,14 +136,14 @@ class ParserService {
                 executablePath: '/usr/bin/chromium-browser',
                 args: [
                     '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-accelerated-2d-canvas',
-                    '--no-first-run',
-                    '--no-zygote',
-                    '--single-process',
-                    '--disable-gpu',
-                    '--ignore-certificate-errors'
+                    // '--disable-setuid-sandbox',
+                    // '--disable-dev-shm-usage',
+                    // '--disable-accelerated-2d-canvas',
+                    // '--no-first-run',
+                    // '--no-zygote',
+                    // '--single-process',
+                    // '--disable-gpu',
+                    // '--ignore-certificate-errors'
                 ]
             })
             const pageBooking = await browser.newPage()
@@ -222,7 +223,7 @@ class ParserService {
         ParserService.processInWorkCount[currentRequestId] = ParserService.processInWorkCount[currentRequestId] - 1
         console.log(ParserService.processInWorkCount)
         await browser.close()
-        if (ParserService.actualRequestId === currentRequestId && ParserService.processInWorkCount[currentRequestId] < 1 && !ParserService.isPausing) {
+        if (ParserService.actualRequestId === currentRequestId && ParserService.processInWorkCount[currentRequestId] < 1) {
             ParserService.actualRequestId = false
             ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [currentRequestId]: [] }
         }
@@ -237,11 +238,11 @@ class ParserService {
         }
     }
 
-    static pauseParsing(requestId) {
-        ParserService.isPausing = true
-        ParserService.requestsQueue = [ParserService.actualRequestInWork[requestId], ...ParserService.requestsQueue]
-        ParserService.actualRequestId = false
-    }
+    // static pauseParsing(requestId) {
+    //     ParserService.isPausing = true
+    //     ParserService.requestsQueue = [ParserService.actualRequestInWork[requestId], ...ParserService.requestsQueue]
+    //     ParserService.actualRequestId = false
+    // }
 
     static stopParsing() {
         ParserService.actualRequestId = false
