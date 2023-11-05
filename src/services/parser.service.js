@@ -155,8 +155,8 @@ class ParserService {
 
                 if (hotelNames?.length > 0) {
                     const errorsCount = await ParserService.postHotelsByNames(pageMaps, pageOfficialSite, hotelNames, currentRequestId, country)
-
-                    if (errorsCount > 24) {
+                    console.log(errorsCount)
+                    if (errorsCount > 12) {
                         ParserService.pauseParsing(currentRequestId)
                     }
                 } else {
