@@ -155,6 +155,10 @@ class ParserService {
 
                 if (hotelNames?.length > 0) {
                     const errorsCount = await ParserService.postHotelsByNames(pageMaps, pageOfficialSite, hotelNames, currentRequestId, country)
+
+                    if (errorsCount > 24) {
+                        ParserService.pauseParsing(currentRequestId)
+                    }
                 } else {
                     if (ParserService.actualRequestInWork[currentRequestId].destType === 'country') {
                         if (_.size(ParserService.metaDataInWork[currentRequestId]) === 0) {
