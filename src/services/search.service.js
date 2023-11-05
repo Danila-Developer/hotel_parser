@@ -64,7 +64,7 @@ class SearchService {
     }
 
     static async getRequestExportPath({ requestId, fields, separator = ';' }) {
-        const request = (await SearchService.getRequestById(requestId))[0]
+        const request = (await SearchService.getRequestById(requestId))
 
         const fieldsToGet = []
 

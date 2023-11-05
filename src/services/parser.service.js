@@ -3,6 +3,7 @@ const puppeteer = require('puppeteer')
 const { TimeoutError } = require('puppeteer')
 const moment = require('moment')
 const _ = require('lodash')
+const SettingsService = require('../services/settings.service')
 
 class ParserService {
     static actualRequestId = false
@@ -11,10 +12,16 @@ class ParserService {
     static hotelsInWork = {}
     static metaDataInWork = {}
     static requestsQueue = []
+    static settings = {}
 
     static async createRequest({ place, rating = [], price = [], reportCount, destType }) {
         const request = await models.RequestModel.create({ place, rating: rating.join(','), price: price.join(','), reportCount, destType: destType })
-        await ParserService.deleteOldRequests()
+
+        ParserService.settings = await SettingsService.getLastSettings()
+
+        if (ParserService.settings.clearBD) {
+            await ParserService.deleteOldRequests()
+        }
 
         if (ParserService.actualRequestId) {
             ParserService.requestsQueue = [...ParserService.requestsQueue, request]
@@ -70,7 +77,7 @@ class ParserService {
     }
 
     static async startParsingV3(request) {
-        const processesCount = 13
+        const processesCount = ParserService.settings.processCount || 6
         ParserService.actualRequestId = request.id
         ParserService.processInWorkCount = { ...ParserService.processInWorkCount, [request.id]: processesCount }
         ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [request.id]: [] }
@@ -316,14 +323,14 @@ class ParserService {
 
             await page.type(`input[name=q]`, hotelName, {delay: 20})
 
-            await page.waitForSelector('div[data-index="0"]', { timeout: 8000 })
+            await page.waitForSelector('div[data-index="0"]', { timeout: 35000 })
             await page.click('div[data-index="0"]')
 
             try {
                 await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 7000 })
             } catch (err) {
                 if (err instanceof TimeoutError) {
-                    await page.waitForSelector('div[role="feed"]', {timeout: 6000})
+                    await page.waitForSelector('div[role="feed"]', {timeout: 9000})
                     await page.evaluate(() => document.querySelector('div[role="feed"]').querySelectorAll('a')[1].click())
                     await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 5000 })
                 }
@@ -342,7 +349,8 @@ class ParserService {
                                 !/[0-9]$/ug.test(item) &&
                                 !/\.png$/ug.test(item) &&
                                 !/wixpress/ug.test(item) &&
-                                !/@sentry.io/ug.test(item)
+                                !/@sentry.io/ug.test(item) &&
+                                ParserService.settings.exclude.filter(mail => (new RegExp(mail, 'ug')).test(item)).length === 0
                     }))))
 
                     return {
