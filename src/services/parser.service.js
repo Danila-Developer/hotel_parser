@@ -70,7 +70,7 @@ class ParserService {
     }
 
     static async startParsingV3(request) {
-        const processesCount = 2
+        const processesCount = 13
         ParserService.actualRequestId = request.id
         ParserService.processInWorkCount = { ...ParserService.processInWorkCount, [request.id]: processesCount }
         ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [request.id]: [] }
@@ -176,6 +176,14 @@ class ParserService {
 
     static stopParsing() {
         ParserService.actualRequestId = false
+
+        if (_.size(ParserService.requestsQueue) > 0) {
+            const [initRequest, ...queue] = ParserService.requestsQueue
+
+            ParserService.initRequest(initRequest)
+
+            ParserService.requestsQueue = queue
+        }
     }
 
     static async getHotels(page, request, processMetaData) {
@@ -308,14 +316,14 @@ class ParserService {
 
             await page.type(`input[name=q]`, hotelName, {delay: 20})
 
-            await page.waitForSelector('div[data-index="0"]', { timeout: 10000 })
+            await page.waitForSelector('div[data-index="0"]', { timeout: 8000 })
             await page.click('div[data-index="0"]')
 
             try {
-                await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 5000 })
+                await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 7000 })
             } catch (err) {
                 if (err instanceof TimeoutError) {
-                    await page.waitForSelector('div[role="feed"]')
+                    await page.waitForSelector('div[role="feed"]', {timeout: 6000})
                     await page.evaluate(() => document.querySelector('div[role="feed"]').querySelectorAll('a')[1].click())
                     await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 5000 })
                 }
