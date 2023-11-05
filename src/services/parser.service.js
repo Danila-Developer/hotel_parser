@@ -56,10 +56,13 @@ class ParserService {
 
                     if (hotelInfo?.name) {
                         const {name, emails, executionTime, officialUrl} = hotelInfo
-                        if (emails.length > 0 && executionTime) {
+                        if (emails.length > 0 && hotelInfo?.timeout) {
                             ParserService.averageExecutionTime = {
                                 ...ParserService.averageExecutionTime,
-                                [currentRequestId]: (ParserService.averageExecutionTime[currentRequestId] + executionTime) / 2
+                                [currentRequestId]: {
+                                    goto: (hotelInfo.timeout.goto + ParserService.averageExecutionTime[currentRequestId].goto) / 2,
+                                    dataIndex: (hotelInfo.timeout.dataIndex + ParserService.averageExecutionTime[currentRequestId].dataIndex) / 2,
+                                }
                             }
                         }
                         console.log('post', country)
@@ -91,7 +94,7 @@ class ParserService {
         ParserService.actualRequestInWork = { ...ParserService.actualRequestInWork, [request.id]: request }
         ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [request.id]: [] }
         ParserService.metaDataInWork = { ...ParserService.metaDataInWork, [request.id]: [] }
-        ParserService.averageExecutionTime = { ...ParserService.metaDataInWork, [request.id]: 10000 }
+        ParserService.averageExecutionTime = { ...ParserService.metaDataInWork, [request.id]: { goto: 20000, dataIndex: 7000 } }
         await ParserService.setRequestMetaData(ParserService.actualRequestInWork[request.id])
         //ParserService.speedInWork = { ...ParserService.speedInWork, [request.id]: [] }
 
@@ -335,18 +338,23 @@ class ParserService {
         const start = new Date().getTime()
 
         try {
-            await page.goto('https://www.google.ru/maps/', { waitUntil: 'networkidle2' })
+            const startGoto = new Date().getTime()
+            await page.goto('https://www.google.ru/maps/', { waitUntil: 'networkidle2', timeout: timeout.goto + 2000 })
+            const endGoto = new Date().getTime()
 
             await page.type(`input[name=q]`, hotelName, {delay: 20})
 
-            await page.waitForSelector('div[data-index="0"]', { timeout: timeout })
+            const startDataIndex = new Date().getTime()
+            await page.waitForSelector('div[data-index="0"]', {timeout: timeout.dataIndex + 2000 })
+            const endDataIndex = new Date().getTime()
+
             await page.click('div[data-index="0"]')
 
             try {
                 await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 7000 })
             } catch (err) {
                 if (err instanceof TimeoutError) {
-                    await page.waitForSelector('div[role="feed"]', {timeout: 9000})
+                    await page.waitForSelector('div[role="feed"]', {timeout: timeout.dataIndex + 2000 })
                     await page.evaluate(() => document.querySelector('div[role="feed"]').querySelectorAll('a')[1].click())
                     await page.waitForSelector('a[data-tooltip="Перейти на сайт"]', { timeout: 5000 })
                 }
@@ -373,6 +381,10 @@ class ParserService {
                         name: hotelName,
                         emails: emails?.length > 1 ? [emails[0]] : emails,
                         executionTime: new Date().getTime() - start,
+                        timeout: {
+                            goto: endGoto - startGoto,
+                            dataIndex: endDataIndex - startDataIndex
+                        },
                         officialUrl: url
                     }
                 } else {
