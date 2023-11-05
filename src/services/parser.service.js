@@ -44,7 +44,6 @@ class ParserService {
         let errorsCount = 0
 
         while (hotels.length > 0 && ParserService.actualRequestId === currentRequestId) {
-            const [browser, pageBooking, pageMaps, pageOfficialSite] = await ParserService.getBrowser()
             try {
                 if (!ParserService.hotelsInWork[currentRequestId].includes(hotels[0])) {
                     ParserService.hotelsInWork = {
@@ -54,7 +53,7 @@ class ParserService {
                             hotels[0]
                         ]
                     }
-                    const hotelInfo = await ParserService.getEmailFromOfficialSite(pageMaps, pageOfficialSite, hotels[0])
+                    const hotelInfo = await ParserService.getEmailFromOfficialSite(page, page2, hotels[0])
 
                     if (hotelInfo?.name) {
                         // const now = moment()
@@ -97,10 +96,9 @@ class ParserService {
                 } else {
                     console.log('double!')
                 }
-                await browser.close()
+
                 hotels.shift()
             } catch (err) {
-                await browser.close()
                 hotels.shift()
                 errorsCount = errorsCount + 1
                 console.log(err)
@@ -257,60 +255,52 @@ class ParserService {
         }
     }
 
-    static async getHotels(request, processMetaData) {
-        const [browser, pageBooking, pageMaps, pageOfficialSite] = await ParserService.getBrowser()
+    static async getHotels(page, request, processMetaData) {
+        const [url, uf] = ParserService.getBookingUrl(request, processMetaData)
 
-        try {
-            const [url, uf] = ParserService.getBookingUrl(request, processMetaData)
+        await page.goto(url, { waitUntil: 'networkidle2' })
 
-            await pageBooking.goto(url, { waitUntil: 'networkidle2' })
+        const country = await page.$eval('div[data-testid="breadcrumbs"]', element => Array.from(element.querySelector('ol').querySelectorAll('li'))[1].querySelector('a').querySelector('span').innerText)
 
-            const country = await pageBooking.$eval('div[data-testid="breadcrumbs"]', element => Array.from(element.querySelector('ol').querySelectorAll('li'))[1].querySelector('a').querySelector('span').innerText)
+        let names
+        if (+request?.reportCount === 0) {
+            names = await page.$$eval('div[data-testid="title"]', (elements) => elements.map(el => el.innerText))
+        } else {
+            names = await page.$$eval('div[data-testid="property-card-container"]', cards => {
+                return cards.map(card => {
+                    const name = card.querySelector('div[data-testid="title"]').innerText
+                    const reviewScope = card.querySelector('div[data-testid="review-score"]')
 
-            let names
-            if (+request?.reportCount === 0) {
-                names = await pageBooking.$$eval('div[data-testid="title"]', (elements) => elements.map(el => el.innerText))
-            } else {
-                names = await pageBooking.$$eval('div[data-testid="property-card-container"]', cards => {
-                    return cards.map(card => {
-                        const name = card.querySelector('div[data-testid="title"]').innerText
-                        const reviewScope = card.querySelector('div[data-testid="review-score"]')
+                    if (reviewScope !== null) {
+                        if (reviewScope.querySelectorAll('div')[3]) {
+                            const reportCount = +reviewScope.querySelectorAll('div')[3]?.innerText?.split(' ')[0]
 
-                        if (reviewScope !== null) {
-                            if (reviewScope.querySelectorAll('div')[3]) {
-                                const reportCount = +reviewScope.querySelectorAll('div')[3]?.innerText?.split(' ')[0]
-
-                                return { name, reportCount }
-                            }
+                            return { name, reportCount }
                         }
-                    })
+                    }
                 })
+            })
 
-                names = names.filter(name => {
-                    if (name === null) return false
+            names = names.filter(name => {
+                if (name === null) return false
 
-                    return name.reportCount > +request?.reportCount;
-                }).map(name => name.name)
-            }
-
-
-            //await browser.close()
-            //console.log(names)
-            console.log('get-hotel', country)
-            console.log(url)
-            console.log(names)
-            console.log(ParserService.metaDataInWork)
-            await browser.close()
-            return [names, country, uf]
-        } catch (err) {
-            console.log(err)
-            await browser.close()
-            return  await ParserService.getHotels(request, processMetaData)
+                return name.reportCount > +request?.reportCount;
+            }).map(name => name.name)
         }
+
+
+        //await browser.close()
+        //console.log(names)
+        console.log('get-hotel', country)
+        console.log(url)
+        console.log(names)
+        console.log(ParserService.metaDataInWork)
+
+        return [names, country, uf]
     }
 
-    static async getHotelsWithCheckDouble(request, processMetaData) {
-        const [names, country, uf] = await ParserService.getHotels(request, processMetaData)
+    static async getHotelsWithCheckDouble(page, request, processMetaData) {
+        const [names, country, uf] = await ParserService.getHotels(page, request, processMetaData)
 
         if (_.isArray(names)) {
             const uniqueNames = names.filter(name => !ParserService.hotelsInWork[request.id].includes(name))
@@ -328,7 +318,7 @@ class ParserService {
                     return [[], country, uf]
                 }
 
-                return await ParserService.getHotelsWithCheckDouble(request, processMetaData)
+                return await ParserService.getHotelsWithCheckDouble(page, request, processMetaData)
             } else {
                 return [[], country, uf]
             }
