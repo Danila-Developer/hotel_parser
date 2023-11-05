@@ -14,7 +14,7 @@ class ParserService {
     static requestsQueue = []
     static settings = {}
     static isPausing = false
-    static speedInWork = {}
+    //static speedInWork = {}
 
     static async createRequest({ place, rating = [], price = [], reportCount, destType }) {
         const request = await models.RequestModel.create({ place, rating: rating.join(','), price: price.join(','), reportCount, destType: destType })
@@ -44,6 +44,7 @@ class ParserService {
         let errorsCount = 0
 
         while (hotels.length > 0 && ParserService.actualRequestId === currentRequestId) {
+            const [browser, pageBooking, pageMaps, pageOfficialSite] = await ParserService.getBrowser()
             try {
                 if (!ParserService.hotelsInWork[currentRequestId].includes(hotels[0])) {
                     ParserService.hotelsInWork = {
@@ -53,55 +54,34 @@ class ParserService {
                             hotels[0]
                         ]
                     }
-                    const hotelInfo = await ParserService.getEmailFromOfficialSite(page, page2, hotels[0])
+                    const hotelInfo = await ParserService.getEmailFromOfficialSite(pageMaps, pageOfficialSite, hotels[0])
 
                     if (hotelInfo?.name) {
-                        const now = moment()
-                        const sizeSpeedInWork = _.size(ParserService.speedInWork[currentRequestId])
-                        if (sizeSpeedInWork === 0) {
-                            ParserService.speedInWork = {
-                                ...ParserService.speedInWork,
-                                [currentRequestId]: [
-                                    { time: now, count: 1 }
-                                ]
-                            }
-                        } else {
-                            if (now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'm') > 0) {
-                                ParserService.speedInWork = {
-                                    ...ParserService.speedInWork,
-                                    [currentRequestId]: [
-                                        ...ParserService.speedInWork[currentRequestId],
-                                        { time: now, count: 1 }
-                                    ]
-                                }
-                            } else {
-                                // мутировать в конце массива добавить один
-
-                                _.set(ParserService.speedInWork, `${currentRequestId}[${sizeSpeedInWork - 1}].count`, ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].count + 1)
-                            }
-                            // if (now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'minutes') < 0) {
-                            //     console.log('diff', now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'minutes'))
-                            //     const last = ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1]
-                            //     const arr = ParserService.speedInWork[currentRequestId].slice(0, sizeSpeedInWork - 1)
-                            //     _.set(last, 'count', last.count + 1)
-                            //     ParserService.speedInWork = {
-                            //         ...ParserService.speedInWork,
-                            //         [currentRequestId]: [
-                            //             ...arr,
-                            //             last
-                            //     ],
-                            //     }
-                            // } else {
-                            //     ParserService.speedInWork = {
-                            //         ...ParserService.speedInWork,
-                            //         [currentRequestId]: [
-                            //             ...ParserService.speedInWork[currentRequestId],
-                            //             { time: now, count: 1 }
-                            //         ]
-                            //     }
-                            // }
-                        }
-                        console.log(ParserService.speedInWork)
+                        // const now = moment()
+                        // const sizeSpeedInWork = _.size(ParserService.speedInWork[currentRequestId])
+                        // if (sizeSpeedInWork === 0) {
+                        //     ParserService.speedInWork = {
+                        //         ...ParserService.speedInWork,
+                        //         [currentRequestId]: [
+                        //             { time: now, count: 1 }
+                        //         ]
+                        //     }
+                        // } else {
+                        //     if (now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'm') > 0) {
+                        //         ParserService.speedInWork = {
+                        //             ...ParserService.speedInWork,
+                        //             [currentRequestId]: [
+                        //                 ...ParserService.speedInWork[currentRequestId],
+                        //                 { time: now, count: 1 }
+                        //             ]
+                        //         }
+                        //     } else {
+                        //         // мутировать в конце массива добавить один
+                        //
+                        //         _.set(ParserService.speedInWork, `${currentRequestId}[${sizeSpeedInWork - 1}].count`, ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].count + 1)
+                        //     }
+                        // }
+                        // console.log(ParserService.speedInWork)
 
                         const {name, emails, executionTime, officialUrl} = hotelInfo
                         console.log('post', country)
@@ -117,9 +97,10 @@ class ParserService {
                 } else {
                     console.log('double!')
                 }
-
+                await browser.close()
                 hotels.shift()
             } catch (err) {
+                await browser.close()
                 hotels.shift()
                 errorsCount = errorsCount + 1
                 console.log(err)
@@ -134,7 +115,7 @@ class ParserService {
         ParserService.actualRequestId = request.id
         ParserService.processInWorkCount = { ...ParserService.processInWorkCount, [request.id]: processesCount }
         ParserService.actualRequestInWork = { ...ParserService.actualRequestInWork, [request.id]: request }
-        ParserService.speedInWork = { ...ParserService.speedInWork, [request.id]: [] }
+        //ParserService.speedInWork = { ...ParserService.speedInWork, [request.id]: [] }
 
         if (!ParserService.isPausing) {
             ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [request.id]: [] }
@@ -154,7 +135,17 @@ class ParserService {
         try {
             const browser = await puppeteer.launch({ headless: true, devtools: true,
                 executablePath: '/usr/bin/chromium-browser',
-                args: ['--no-sandbox']
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--single-process',
+                    '--disable-gpu',
+                    '--ignore-certificate-errors'
+                ]
             })
             const pageBooking = await browser.newPage()
             const pageMaps = await browser.newPage()
@@ -204,14 +195,14 @@ class ParserService {
                 if (hotelNames?.length > 0) {
                     const errorsCount = await ParserService.postHotelsByNames(pageMaps, pageOfficialSite, hotelNames, currentRequestId, country)
                     console.log('errorsCount', errorsCount)
-                    const sizeSpeedInWork = _.size(ParserService.speedInWork[currentRequestId])
-                    const now = moment()
-                    if (now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'minutes') > 0) {
-                        if (ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].count < processesCount) {
-                            console.log('pause')
-                            ParserService.pauseParsing(currentRequestId)
-                        }
-                    }
+                    //const sizeSpeedInWork = _.size(ParserService.speedInWork[currentRequestId])
+                    //const now = moment()
+                    // if (now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'minutes') > 0) {
+                    //     if (ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].count < processesCount) {
+                    //         console.log('pause')
+                    //         ParserService.pauseParsing(currentRequestId)
+                    //     }
+                    // }
                 } else {
                     if (ParserService.actualRequestInWork[currentRequestId].destType === 'country') {
                         if (_.size(ParserService.metaDataInWork[currentRequestId]) === 0) {
@@ -266,52 +257,60 @@ class ParserService {
         }
     }
 
-    static async getHotels(page, request, processMetaData) {
-        const [url, uf] = ParserService.getBookingUrl(request, processMetaData)
+    static async getHotels(request, processMetaData) {
+        const [browser, pageBooking, pageMaps, pageOfficialSite] = await ParserService.getBrowser()
 
-        await page.goto(url, { waitUntil: 'networkidle2' })
+        try {
+            const [url, uf] = ParserService.getBookingUrl(request, processMetaData)
 
-        const country = await page.$eval('div[data-testid="breadcrumbs"]', element => Array.from(element.querySelector('ol').querySelectorAll('li'))[1].querySelector('a').querySelector('span').innerText)
+            await pageBooking.goto(url, { waitUntil: 'networkidle2' })
 
-        let names
-        if (+request?.reportCount === 0) {
-            names = await page.$$eval('div[data-testid="title"]', (elements) => elements.map(el => el.innerText))
-        } else {
-            names = await page.$$eval('div[data-testid="property-card-container"]', cards => {
-                return cards.map(card => {
-                    const name = card.querySelector('div[data-testid="title"]').innerText
-                    const reviewScope = card.querySelector('div[data-testid="review-score"]')
+            const country = await pageBooking.$eval('div[data-testid="breadcrumbs"]', element => Array.from(element.querySelector('ol').querySelectorAll('li'))[1].querySelector('a').querySelector('span').innerText)
 
-                    if (reviewScope !== null) {
-                        if (reviewScope.querySelectorAll('div')[3]) {
-                            const reportCount = +reviewScope.querySelectorAll('div')[3]?.innerText?.split(' ')[0]
+            let names
+            if (+request?.reportCount === 0) {
+                names = await pageBooking.$$eval('div[data-testid="title"]', (elements) => elements.map(el => el.innerText))
+            } else {
+                names = await pageBooking.$$eval('div[data-testid="property-card-container"]', cards => {
+                    return cards.map(card => {
+                        const name = card.querySelector('div[data-testid="title"]').innerText
+                        const reviewScope = card.querySelector('div[data-testid="review-score"]')
 
-                            return { name, reportCount }
+                        if (reviewScope !== null) {
+                            if (reviewScope.querySelectorAll('div')[3]) {
+                                const reportCount = +reviewScope.querySelectorAll('div')[3]?.innerText?.split(' ')[0]
+
+                                return { name, reportCount }
+                            }
                         }
-                    }
+                    })
                 })
-            })
 
-            names = names.filter(name => {
-                if (name === null) return false
+                names = names.filter(name => {
+                    if (name === null) return false
 
-                return name.reportCount > +request?.reportCount;
-            }).map(name => name.name)
+                    return name.reportCount > +request?.reportCount;
+                }).map(name => name.name)
+            }
+
+
+            //await browser.close()
+            //console.log(names)
+            console.log('get-hotel', country)
+            console.log(url)
+            console.log(names)
+            console.log(ParserService.metaDataInWork)
+            await browser.close()
+            return [names, country, uf]
+        } catch (err) {
+            console.log(err)
+            await browser.close()
+            return  await ParserService.getHotels(request, processMetaData)
         }
-
-
-        //await browser.close()
-        //console.log(names)
-        console.log('get-hotel', country)
-        console.log(url)
-        console.log(names)
-        console.log(ParserService.metaDataInWork)
-
-        return [names, country, uf]
     }
 
-    static async getHotelsWithCheckDouble(page, request, processMetaData) {
-        const [names, country, uf] = await ParserService.getHotels(page, request, processMetaData)
+    static async getHotelsWithCheckDouble(request, processMetaData) {
+        const [names, country, uf] = await ParserService.getHotels(request, processMetaData)
 
         if (_.isArray(names)) {
             const uniqueNames = names.filter(name => !ParserService.hotelsInWork[request.id].includes(name))
@@ -329,7 +328,7 @@ class ParserService {
                     return [[], country, uf]
                 }
 
-                return await ParserService.getHotelsWithCheckDouble(page, request, processMetaData)
+                return await ParserService.getHotelsWithCheckDouble(request, processMetaData)
             } else {
                 return [[], country, uf]
             }
