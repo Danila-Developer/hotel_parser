@@ -56,9 +56,9 @@ class ParserService {
                     const hotelInfo = await ParserService.getEmailFromOfficialSite(page, page2, hotels[0])
 
                     if (hotelInfo?.name) {
+                        const now = moment()
                         const sizeSpeedInWork = _.size(ParserService.speedInWork[currentRequestId])
                         if (sizeSpeedInWork === 0) {
-                            const now = moment()
                             ParserService.speedInWork = {
                                 ...ParserService.speedInWork,
                                 [currentRequestId]: [
@@ -66,20 +66,7 @@ class ParserService {
                                 ]
                             }
                         } else {
-                            const now = moment()
-                            if (now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'minutes') < 0) {
-                                console.log('diff', now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'minutes'))
-                                const last = ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1]
-                                const arr = ParserService.speedInWork[currentRequestId].slice(0, sizeSpeedInWork - 1)
-                                _.set(last, 'count', last.count + 1)
-                                ParserService.speedInWork = {
-                                    ...ParserService.speedInWork,
-                                    [currentRequestId]: [
-                                        ...arr,
-                                        last
-                                ],
-                                }
-                            } else {
+                            if (now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'm') > 0) {
                                 ParserService.speedInWork = {
                                     ...ParserService.speedInWork,
                                     [currentRequestId]: [
@@ -87,7 +74,32 @@ class ParserService {
                                         { time: now, count: 1 }
                                     ]
                                 }
+                            } else {
+                                // мутировать в конце массива добавить один
+
+                                _.set(ParserService.speedInWork, `${currentRequestId}[${sizeSpeedInWork - 1}].count`, ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].count + 1)
                             }
+                            // if (now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'minutes') < 0) {
+                            //     console.log('diff', now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'minutes'))
+                            //     const last = ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1]
+                            //     const arr = ParserService.speedInWork[currentRequestId].slice(0, sizeSpeedInWork - 1)
+                            //     _.set(last, 'count', last.count + 1)
+                            //     ParserService.speedInWork = {
+                            //         ...ParserService.speedInWork,
+                            //         [currentRequestId]: [
+                            //             ...arr,
+                            //             last
+                            //     ],
+                            //     }
+                            // } else {
+                            //     ParserService.speedInWork = {
+                            //         ...ParserService.speedInWork,
+                            //         [currentRequestId]: [
+                            //             ...ParserService.speedInWork[currentRequestId],
+                            //             { time: now, count: 1 }
+                            //         ]
+                            //     }
+                            // }
                         }
                         console.log(ParserService.speedInWork)
 
