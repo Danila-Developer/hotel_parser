@@ -68,6 +68,7 @@ class ParserService {
                         } else {
                             const now = moment()
                             if (now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'minutes') < 0) {
+                                console.log('diff', now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'minutes'))
                                 const last = ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1]
                                 const arr = ParserService.speedInWork[currentRequestId].slice(0, sizeSpeedInWork - 1)
                                 _.set(last, 'count', last.count + 1)
@@ -195,6 +196,7 @@ class ParserService {
                     const now = moment()
                     if (now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'minutes') > 0) {
                         if (ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].count < processesCount) {
+                            console.log('pause')
                             ParserService.pauseParsing(currentRequestId)
                         }
                     }
