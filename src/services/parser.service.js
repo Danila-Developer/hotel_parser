@@ -13,6 +13,7 @@ class ParserService {
     static metaDataInWork = {}
     static requestsQueue = []
     static settings = {}
+    static isPausing = false
 
     static async createRequest({ place, rating = [], price = [], reportCount, destType }) {
         const request = await models.RequestModel.create({ place, rating: rating.join(','), price: price.join(','), reportCount, destType: destType })
@@ -32,12 +33,14 @@ class ParserService {
         return request
     }
 
-    static initRequest(request, processesCount) {
-        ParserService.startParsingV3(request, processesCount)
+    static initRequest(request) {
+        ParserService.startParsingV3(request)
     }
 
     static async postHotelsByNames(page, page2, hotelNames, currentRequestId, country) {
         const hotels = [...hotelNames]
+
+        let errorsCount = 0
 
         while (hotels.length > 0 && ParserService.actualRequestId === currentRequestId) {
             try {
@@ -71,20 +74,27 @@ class ParserService {
                 hotels.shift()
             } catch (err) {
                 hotels.shift()
+                errorsCount = errorsCount + 1
                 console.log(err)
             }
         }
+
+        return errorsCount
     }
 
     static async startParsingV3(request) {
         const processesCount = ParserService.settings.processCount || 6
         ParserService.actualRequestId = request.id
         ParserService.processInWorkCount = { ...ParserService.processInWorkCount, [request.id]: processesCount }
-        ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [request.id]: [] }
         ParserService.actualRequestInWork = { ...ParserService.actualRequestInWork, [request.id]: request }
-        ParserService.metaDataInWork = { ...ParserService.metaDataInWork, [request.id]: [] }
 
-        await ParserService.setRequestMetaData(ParserService.actualRequestInWork[request.id])
+        if (!ParserService.isPausing) {
+            ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [request.id]: [] }
+            ParserService.metaDataInWork = { ...ParserService.metaDataInWork, [request.id]: [] }
+            await ParserService.setRequestMetaData(ParserService.actualRequestInWork[request.id])
+        }
+
+        ParserService.isPausing = false
 
         for (let i = 0; i < processesCount; i++) {
             console.log(`start process ${i + 1}`)
@@ -144,7 +154,7 @@ class ParserService {
                 const [hotelNames, country] = await ParserService.getHotelsWithCheckDouble(pageBooking, ParserService.actualRequestInWork[currentRequestId], { processNumber, processesCount, i })
 
                 if (hotelNames?.length > 0) {
-                    await ParserService.postHotelsByNames(pageMaps, pageOfficialSite, hotelNames, currentRequestId, country)
+                    const errorsCount = await ParserService.postHotelsByNames(pageMaps, pageOfficialSite, hotelNames, currentRequestId, country)
                 } else {
                     if (ParserService.actualRequestInWork[currentRequestId].destType === 'country') {
                         if (_.size(ParserService.metaDataInWork[currentRequestId]) === 0) {
@@ -166,7 +176,7 @@ class ParserService {
         ParserService.processInWorkCount[currentRequestId] = ParserService.processInWorkCount[currentRequestId] - 1
         console.log(ParserService.processInWorkCount)
         await browser.close()
-        if (ParserService.actualRequestId === currentRequestId && ParserService.processInWorkCount[currentRequestId] < 1) {
+        if (ParserService.actualRequestId === currentRequestId && ParserService.processInWorkCount[currentRequestId] < 1 && !ParserService.isPausing) {
             ParserService.actualRequestId = false
             ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [currentRequestId]: [] }
         }
@@ -179,6 +189,12 @@ class ParserService {
                 ParserService.requestsQueue = queue
             }
         }
+    }
+
+    static pauseParsing(requestId) {
+        ParserService.isPausing = true
+        ParserService.requestsQueue = [ParserService.actualRequestInWork[requestId], ...ParserService.requestsQueue]
+        ParserService.actualRequestId = false
     }
 
     static stopParsing() {
