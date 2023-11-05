@@ -24,7 +24,7 @@ class SettingsService {
 
         return  {
             ...data,
-            exclude: data.exclude.split(',')
+            exclude: data.exclude ? data.exclude.split(',') : []
         }
     }
 }
