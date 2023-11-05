@@ -13,8 +13,7 @@ class ParserService {
     static metaDataInWork = {}
     static requestsQueue = []
     static settings = {}
-    //static isPausing = false
-    //static speedInWork = {}
+    static averageExecutionTime = {}
 
     static async createRequest({ place, rating = [], price = [], reportCount, destType }) {
         const request = await models.RequestModel.create({ place, rating: rating.join(','), price: price.join(','), reportCount, destType: destType })
@@ -53,36 +52,16 @@ class ParserService {
                             hotels[0]
                         ]
                     }
-                    const hotelInfo = await ParserService.getEmailFromOfficialSite(page, page2, hotels[0])
+                    const hotelInfo = await ParserService.getEmailFromOfficialSite(page, page2, hotels[0], ParserService.averageExecutionTime[currentRequestId])
 
                     if (hotelInfo?.name) {
-                        // const now = moment()
-                        // const sizeSpeedInWork = _.size(ParserService.speedInWork[currentRequestId])
-                        // if (sizeSpeedInWork === 0) {
-                        //     ParserService.speedInWork = {
-                        //         ...ParserService.speedInWork,
-                        //         [currentRequestId]: [
-                        //             { time: now, count: 1 }
-                        //         ]
-                        //     }
-                        // } else {
-                        //     if (now.diff(ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].time, 'm') > 0) {
-                        //         ParserService.speedInWork = {
-                        //             ...ParserService.speedInWork,
-                        //             [currentRequestId]: [
-                        //                 ...ParserService.speedInWork[currentRequestId],
-                        //                 { time: now, count: 1 }
-                        //             ]
-                        //         }
-                        //     } else {
-                        //         // мутировать в конце массива добавить один
-                        //
-                        //         _.set(ParserService.speedInWork, `${currentRequestId}[${sizeSpeedInWork - 1}].count`, ParserService.speedInWork[currentRequestId][sizeSpeedInWork - 1].count + 1)
-                        //     }
-                        // }
-                        // console.log(ParserService.speedInWork)
-
                         const {name, emails, executionTime, officialUrl} = hotelInfo
+                        if (emails.length > 0 && executionTime) {
+                            ParserService.averageExecutionTime = {
+                                ...ParserService.averageExecutionTime,
+                                [currentRequestId]: (ParserService.averageExecutionTime[currentRequestId] + executionTime) / 2
+                            }
+                        }
                         console.log('post', country)
                         await models.HotelModel.create({
                             name,
@@ -100,12 +79,9 @@ class ParserService {
                 hotels.shift()
             } catch (err) {
                 hotels.shift()
-                //errorsCount = errorsCount + 1
                 console.log(err)
             }
         }
-
-        return errorsCount
     }
 
     static async startParsingV3(request) {
@@ -115,6 +91,7 @@ class ParserService {
         ParserService.actualRequestInWork = { ...ParserService.actualRequestInWork, [request.id]: request }
         ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [request.id]: [] }
         ParserService.metaDataInWork = { ...ParserService.metaDataInWork, [request.id]: [] }
+        ParserService.averageExecutionTime = { ...ParserService.metaDataInWork, [request.id]: 10000 }
         await ParserService.setRequestMetaData(ParserService.actualRequestInWork[request.id])
         //ParserService.speedInWork = { ...ParserService.speedInWork, [request.id]: [] }
 
@@ -354,7 +331,7 @@ class ParserService {
         return [url, uf]
     }
 
-    static async getEmailFromOfficialSite(page, page2, hotelName) {
+    static async getEmailFromOfficialSite(page, page2, hotelName, timeout) {
         const start = new Date().getTime()
 
         try {
@@ -362,7 +339,7 @@ class ParserService {
 
             await page.type(`input[name=q]`, hotelName, {delay: 20})
 
-            await page.waitForSelector('div[data-index="0"]', { timeout: 35000 })
+            await page.waitForSelector('div[data-index="0"]', { timeout: timeout })
             await page.click('div[data-index="0"]')
 
             try {
