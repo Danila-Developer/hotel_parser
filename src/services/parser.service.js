@@ -481,12 +481,25 @@ class ParserService {
                         })
                 })
                 console.log('cities', cities)
+                const filters = []
+
+                cities.forEach(item => {
+                    if (item.amount > 1000) {
+                        filters.push({ name: item.filter, value: 0 })
+                        filters.push({ name: `${item.filter};ht_id=201`, value: 0 })
+                        filters.push({ name: `${item.filter};ht_id=220`, value: 0 })
+                        filters.push({ name: `${item.filter};ht_id=204`, value: 0 })
+                    } else {
+                        filters.push({ name: item.filter, value: 0 })
+                    }
+                })
+
                 ParserService.metaDataInWork = {
                     ...ParserService.metaDataInWork,
                     [request.id]: [
                         ...ParserService.metaDataInWork[request.id],
-                        { name: '', value: 0 },
-                        ...cities.map(item => ({ name: item.filter, value: 0 }))
+                        ...filters,
+                        { name: '', value: 0 }
                     ]
                 }
 
