@@ -105,7 +105,15 @@ class ParserService {
         try {
             const browser = await puppeteer.launch({ headless: true, devtools: true,
                 executablePath: '/usr/bin/chromium-browser',
-                args: ['--no-sandbox']
+                args: ['--no-sandbox',
+                    '--aggressive-cache-discard',
+                    '--disable-cache',
+                    '--disable-application-cache',
+                    '--disable-offline-load-stale-cache',
+                    '--disable-gpu-shader-disk-cache',
+                    '--media-cache-size=0',
+                    '--disk-cache-size=0'
+                ]
             })
             const pageBooking = await browser.newPage()
             const pageMaps = await browser.newPage()
@@ -358,6 +366,8 @@ class ParserService {
                 await page2.goto(url, { waitUntil: 'networkidle2' })
                 const htmlPage = await page2.evaluate(() => document.documentElement.innerHTML)
                 const match = htmlPage.match(/[\w.-]+@[\w.-]+\.\w+/gu)
+                const cookies = await page2.cookies()
+                cookies.forEach(page.deleteCookie)
 
                 if (match) {
                     const emails = Array.from(new Set(match.filter((item => {
