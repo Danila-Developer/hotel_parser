@@ -480,6 +480,7 @@ class ParserService {
                     ...ParserService.metaDataInWork,
                     [request.id]: [
                         ...ParserService.metaDataInWork[request.id],
+                        { name: '', value: 0 },
                         ...cities.map(item => ({ name: item, value: 0 }))
                     ]
                 }
