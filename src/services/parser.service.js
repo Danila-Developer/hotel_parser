@@ -480,7 +480,7 @@ class ParserService {
                             return {filter, amount}
                         })
                 })
-                console.log(cities)
+                console.log('cities', cities)
                 ParserService.metaDataInWork = {
                     ...ParserService.metaDataInWork,
                     [request.id]: [
