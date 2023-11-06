@@ -40,8 +40,6 @@ class ParserService {
     static async postHotelsByNames(page, page2, hotelNames, currentRequestId, country) {
         const hotels = [...hotelNames]
 
-        // let errorsCount = 0
-
         while (hotels.length > 0 && ParserService.actualRequestId === currentRequestId) {
             try {
                 if (!ParserService.hotelsInWork[currentRequestId].includes(hotels[0])) {
@@ -96,13 +94,6 @@ class ParserService {
         ParserService.metaDataInWork = { ...ParserService.metaDataInWork, [request.id]: [] }
         ParserService.averageExecutionTime = { ...ParserService.metaDataInWork, [request.id]: { goto: 20000, dataIndex: 7000 } }
         await ParserService.setRequestMetaData(ParserService.actualRequestInWork[request.id])
-        //ParserService.speedInWork = { ...ParserService.speedInWork, [request.id]: [] }
-
-        // if (!ParserService.isPausing) {
-        //
-        // }
-
-        //ParserService.isPausing = false
 
         for (let i = 0; i < processesCount; i++) {
             console.log(`start process ${i + 1}`)
@@ -144,6 +135,7 @@ class ParserService {
                     request.continue();
                 }
             });
+            await pageOfficialSite.setCacheEnabled(false);
 
             return [browser, pageBooking, pageMaps, pageOfficialSite]
         } catch (err) {
@@ -187,7 +179,7 @@ class ParserService {
         }
         ParserService.processInWorkCount[currentRequestId] = ParserService.processInWorkCount[currentRequestId] - 1
         console.log(ParserService.processInWorkCount)
-        //await browser.close()
+
         if (ParserService.actualRequestId === currentRequestId && ParserService.processInWorkCount[currentRequestId] < 1) {
             ParserService.actualRequestId = false
             ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [currentRequestId]: [] }
