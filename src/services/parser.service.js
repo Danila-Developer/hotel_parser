@@ -473,15 +473,20 @@ class ParserService {
                     }
                     return [...element.querySelectorAll('div')]
                         .filter(item => item.getAttribute('data-filters-item'))
-                        .map(item => item.getAttribute('data-filters-item').split(':')[1])
-                })
+                        .map(item => {
+                            const filter = item.getAttribute('data-filters-item').split(':')[1]
+                            const amount = +item?.querySelector('div[data-testid="filters-group-label-container"]')?.querySelector('span')?.innerText
 
+                            return {filter, amount}
+                        })
+                })
+                console.log(cities)
                 ParserService.metaDataInWork = {
                     ...ParserService.metaDataInWork,
                     [request.id]: [
                         ...ParserService.metaDataInWork[request.id],
                         { name: '', value: 0 },
-                        ...cities.map(item => ({ name: item, value: 0 }))
+                        ...cities.map(item => ({ name: item.filter, value: 0 }))
                     ]
                 }
 
