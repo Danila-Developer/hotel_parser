@@ -106,15 +106,25 @@ class ParserService {
         try {
             const browser = await puppeteer.launch({ headless: true, devtools: true,
                 executablePath: '/usr/bin/chromium-browser',
-                userDataDir: path.resolve(__dirname, 'tmp'),
+                userDataDir: './user_data_dir/',
                 args: ['--no-sandbox',
                     '--aggressive-cache-discard',
                     '--disable-cache',
                     '--disable-application-cache',
                     '--disable-offline-load-stale-cache',
                     '--disable-gpu-shader-disk-cache',
-                    '--media-cache-size=0',
-                    '--disk-cache-size=0',
+                    '--disk-cache-dir=/dev/null',  // this is causing problem
+                    '--media-cache-dir=/dev/null', // this is causing problem
+                    '--disk-cache-size=1',
+                    '--media-cache-size=1',
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--single-process',
+                    '--disable-gpu'
                 ]
             })
             const pageBooking = await browser.newPage()
