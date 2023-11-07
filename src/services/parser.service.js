@@ -130,7 +130,7 @@ class ParserService {
             console.log('chromeSpawnArgs', chromeSpawnArgs)
             for (let i = 0; i < chromeSpawnArgs.length; i++) {
                 if (chromeSpawnArgs[i].indexOf("--user-data-dir=") === 0) {
-                    chromeTmpDataDir = chromeSpawnArgs[i].replace("--user-data-dir=", "");
+                    chromeTmpDataDir = chromeSpawnArgs[i].replace("--user-data-dir=/tmp/", "");
                 }
             }
             const pageBooking = await browser.newPage()
@@ -167,14 +167,20 @@ class ParserService {
                 await browser.close()
                 if (chromeTmpDataDir !== null) {
                     console.log(chromeTmpDataDir)
-                    //fs.rmdirSync(chromeTmpDataDir);
+                    if (fs.existsSync('/tmp/' + chromeTmpDataDir)) {
+                        fs.rmdirSync('/tmp/' + chromeTmpDataDir);
+                    }
+                    if (fs.existsSync('/tmp/snap-private-tmp/snap.chromium/tmp/' + chromeTmpDataDir)) {
+                        fs.rmdirSync('/tmp/snap-private-tmp/snap.chromium/tmp/' + chromeTmpDataDir);
+                    }
+
                 }
             }
 
             return [browser, pageBooking, pageMaps, pageOfficialSite, close]
         } catch (err) {
             console.log(err)
-            //return await ParserService.getBrowser(setPageBookingJavaScriptDisabled)
+            return await ParserService.getBrowser(setPageBookingJavaScriptDisabled)
         }
 
     }
