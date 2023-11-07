@@ -1,5 +1,5 @@
 const { Sequelize } = require('sequelize')
-
+//172.17.0.1
 const sequelize = new Sequelize({
     dialect: 'postgres',
     host: process.env.DB_HOST,
