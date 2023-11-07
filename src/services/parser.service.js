@@ -87,7 +87,10 @@ class ParserService {
     }
 
     static async startParsingV3(request) {
-        const processesCount = ParserService.settings.processCount
+        let processesCount = 6
+        if (ParserService.settings?.processCount) {
+            processesCount = ParserService.settings.processCount
+        }
         ParserService.actualRequestId = request.id
         ParserService.processInWorkCount = { ...ParserService.processInWorkCount, [request.id]: processesCount }
         ParserService.actualRequestInWork = { ...ParserService.actualRequestInWork, [request.id]: request }
