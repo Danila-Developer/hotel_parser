@@ -521,7 +521,7 @@ class ParserService {
             }
         } catch (err) {
             console.log(err)
-            return await ParserService.setRequestMetaData(request)
+            //return await ParserService.setRequestMetaData(request)
         }
 
     }
