@@ -166,12 +166,13 @@ class ParserService {
             async function close() {
                 await browser.close()
                 if (chromeTmpDataDir !== null) {
-                    console.log(chromeTmpDataDir)
                     if (fs.existsSync('/tmp/' + chromeTmpDataDir)) {
-                        fs.rmSync('/tmp/' + chromeTmpDataDir, { recursive: true, force: true });
+                        fs.rmSync('/tmp/' + chromeTmpDataDir, { recursive: true, force: true })
+                        console.log('removed1', '/tmp/' + chromeTmpDataDir)
                     }
                     if (fs.existsSync('/tmp/snap-private-tmp/snap.chromium/tmp/' + chromeTmpDataDir)) {
-                        fs.rmSync('/tmp/snap-private-tmp/snap.chromium/tmp/' + chromeTmpDataDir, { recursive: true, force: true });
+                        fs.rmSync('/tmp/snap-private-tmp/snap.chromium/tmp/' + chromeTmpDataDir, { recursive: true, force: true })
+                        console.log('removed2', '/tmp/snap-private-tmp/snap.chromium/tmp/\'' + chromeTmpDataDir)
                     }
 
                 }
