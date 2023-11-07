@@ -172,7 +172,7 @@ class ParserService {
                     }
                     if (fs.existsSync('/tmp/snap-private-tmp/snap.chromium/tmp/' + chromeTmpDataDir)) {
                         fs.rmSync('/tmp/snap-private-tmp/snap.chromium/tmp/' + chromeTmpDataDir, { recursive: true, force: true })
-                        console.log('removed2', '/tmp/snap-private-tmp/snap.chromium/tmp/\'' + chromeTmpDataDir)
+                        console.log('removed2', '/tmp/snap-private-tmp/snap.chromium/tmp/' + chromeTmpDataDir)
                     }
 
                 }
@@ -201,11 +201,11 @@ class ParserService {
                 } else {
                     if (ParserService.actualRequestInWork[currentRequestId].destType === 'country') {
                         if (_.size(ParserService.metaDataInWork[currentRequestId]) === 0) {
-                            await browser.close()
+                            await close()
                             break
                         }
                     } else {
-                        await browser.close()
+                        await close()
                         break
                     }
                 }
@@ -283,7 +283,6 @@ class ParserService {
         console.log('get-hotel', country)
         console.log(url)
         console.log(names)
-        console.log(ParserService.metaDataInWork)
 
         return [names, country, uf]
     }

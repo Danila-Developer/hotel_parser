@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_DB: "hotel_parser"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    ports:
+      - "5432:5432"
+  back:
+    build: .
+    restart: always
+#    environment:
+#      PORT: 8800
+#      DB_NAME: hotel_parser
+#      DB_HOST: localhost
+#      DB_PORT: 5432
+#      DB_USERNAME: postgres
+#      DB_PASSWORD: postgres
+    platform: linux/amd64
+    ports:
+      - "8800:8800"

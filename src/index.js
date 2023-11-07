@@ -23,7 +23,6 @@ const corsConfig = {
 }
 server.use('/', express.static(path.resolve(__dirname, '../public/static/')));
 server.use('/static', express.static(path.resolve(__dirname, '../public/static/')));
-console.log(path.resolve(__dirname, '../public/static/'))
 server.use(cors(corsConfig));
 server.options('*', cors(corsConfig))
 server.use(express.json())
