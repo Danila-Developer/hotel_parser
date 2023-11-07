@@ -346,7 +346,11 @@ class ParserService {
             if (destType === 'country') {
                 if (ParserService.metaDataInWork[id]?.length > 0) {
                     uf = ParserService.metaDataInWork[id][0]?.name
-                    nfltUrl = `&nflt=${encodeURIComponent(priceUrl + ';' + uf + ';' + ratingUrl)}`
+                    if (ParserService.metaDataInWork[id][0]?.hasClass) {
+                        nfltUrl = `&nflt=${encodeURIComponent(priceUrl + ';' + uf)}`
+                    } else {
+                        nfltUrl = `&nflt=${encodeURIComponent(priceUrl + ';' + uf + ';' + ratingUrl)}`
+                    }
                     offsetUrl =  `&offset=${ParserService.metaDataInWork[id][0]?.value}`
 
                     _.set(ParserService.metaDataInWork, `${id}.[0].value`, ParserService.metaDataInWork[id][0]?.value + 25)
@@ -516,15 +520,25 @@ class ParserService {
                             return {filter, amount}
                         })
                 })
-                console.log('cities', cities)
+                //console.log('cities', cities)
                 const filters = []
+
+                let ratings
+                if (request.rating) {
+                    ratings = request.rating.split(',')
+                } else {
+                    ratings = ['class=5', 'class=4', 'class=3', 'class=2','class=1','class=0']
+                }
 
                 cities.forEach(item => {
                     if (item.amount > 1000) {
                         filters.push({ name: item.filter, value: 0 })
-                        filters.push({ name: `${item.filter};ht_id=201`, value: 0 })
-                        filters.push({ name: `${item.filter};ht_id=220`, value: 0 })
-                        filters.push({ name: `${item.filter};ht_id=204`, value: 0 })
+                        ratings.forEach(rating => {
+                            filters.push({ name: `${item.filter};${rating}`, value: 0, hasClass: true })
+                        })
+
+                        // filters.push({ name: `${item.filter};ht_id=220`, value: 0 })
+                        // filters.push({ name: `${item.filter};ht_id=204`, value: 0 })
                     } else {
                         filters.push({ name: item.filter, value: 0 })
                     }
@@ -538,6 +552,7 @@ class ParserService {
                         { name: '', value: 0 }
                     ]
                 }
+                console.log(ParserService.metaDataInWork)
 
                 await close()
             }
