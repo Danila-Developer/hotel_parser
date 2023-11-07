@@ -4,6 +4,7 @@ const { TimeoutError } = require('puppeteer')
 const moment = require('moment')
 const _ = require('lodash')
 const SettingsService = require('../services/settings.service')
+const path = require('path')
 
 class ParserService {
     static actualRequestId = false
@@ -105,7 +106,7 @@ class ParserService {
         try {
             const browser = await puppeteer.launch({ headless: true, devtools: true,
                 executablePath: '/usr/bin/chromium-browser',
-                //userDataDir: '/dev/null',
+                userDataDir: path.resolve(__dirname, 'tmp'),
                 args: ['--no-sandbox',
                     '--aggressive-cache-discard',
                     '--disable-cache',
