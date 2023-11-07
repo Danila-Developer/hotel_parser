@@ -106,7 +106,7 @@ class ParserService {
         try {
             let chromeTmpDataDir = null
             const browser = await puppeteer.launch({ headless: true, devtools: true,
-                userDataDir: '/dev/null',
+                executablePath: '/usr/bin/chromium-browser',
                 args: [
                     '--no-sandbox',
                     '--aggressive-cache-discard',
