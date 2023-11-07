@@ -165,7 +165,8 @@ class ParserService {
             async function close() {
                 await browser.close()
                 if (chromeTmpDataDir !== null) {
-                    fs.rmdirSync(chromeTmpDataDir);
+                    console.log(chromeTmpDataDir)
+                    //fs.rmdirSync(chromeTmpDataDir);
                 }
             }
 
