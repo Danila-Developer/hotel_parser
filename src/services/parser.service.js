@@ -159,7 +159,8 @@ class ParserService {
 
             return [browser, pageBooking, pageMaps, pageOfficialSite]
         } catch (err) {
-            return await ParserService.getBrowser(setPageBookingJavaScriptDisabled)
+            console.log(err)
+            //return await ParserService.getBrowser(setPageBookingJavaScriptDisabled)
         }
 
     }
@@ -521,7 +522,7 @@ class ParserService {
             }
         } catch (err) {
             console.log(err)
-            //return await ParserService.setRequestMetaData(request)
+            return await ParserService.setRequestMetaData(request)
         }
 
     }
