@@ -105,6 +105,7 @@ class ParserService {
         try {
             const browser = await puppeteer.launch({ headless: true, devtools: true,
                 executablePath: '/usr/bin/chromium-browser',
+                userDataDir: '/dev/null',
                 args: ['--no-sandbox',
                     '--aggressive-cache-discard',
                     '--disable-cache',
@@ -112,7 +113,7 @@ class ParserService {
                     '--disable-offline-load-stale-cache',
                     '--disable-gpu-shader-disk-cache',
                     '--media-cache-size=0',
-                    '--disk-cache-size=0'
+                    '--disk-cache-size=0',
                 ]
             })
             const pageBooking = await browser.newPage()
