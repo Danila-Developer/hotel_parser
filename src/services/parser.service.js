@@ -366,8 +366,8 @@ class ParserService {
                 await page2.goto(url, { waitUntil: 'networkidle2' })
                 const htmlPage = await page2.evaluate(() => document.documentElement.innerHTML)
                 const match = htmlPage.match(/[\w.-]+@[\w.-]+\.\w+/gu)
-                const cookies = await page2.cookies()
-                cookies.forEach(page.deleteCookie)
+                // const cookies = await page2.cookies()
+                // cookies.forEach(page.deleteCookie)
 
                 if (match) {
                     const emails = Array.from(new Set(match.filter((item => {
