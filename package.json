@@ -5,9 +5,11 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^1.6.0",
+    "chrome-location": "^1.2.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "locate-chrome": "^0.1.1",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "pg": "^8.11.3",

@@ -64,6 +64,7 @@ class ParserService {
                                 }
                             }
                         }
+                        console.log(ParserService.processInWorkCount)
                         console.log('post', country)
                         await models.HotelModel.create({
                             name,
@@ -106,9 +107,9 @@ class ParserService {
     }
 
     static async getBrowser(setPageBookingJavaScriptDisabled = true) {
-        try {
+        try {//'/usr/bin/google-chrome-stable'
             let chromeTmpDataDir = null
-            const browser = await puppeteer.launch({ headless: true, devtools: true,
+            const browser = await puppeteer.launch({ headless: true, devtools: false,
                 executablePath: '/usr/bin/chromium-browser',
                 args: [
                     '--no-sandbox',
@@ -196,7 +197,6 @@ class ParserService {
         while (ParserService.actualRequestId === currentRequestId) {
             const [browser, pageBooking, pageMaps, pageOfficialSite, close] = await ParserService.getBrowser()
             try {
-
                 const [hotelNames, country] = await ParserService.getHotelsWithCheckDouble(pageBooking, ParserService.actualRequestInWork[currentRequestId], { processNumber, processesCount, i })
 
                 if (hotelNames?.length > 0) {
