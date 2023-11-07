@@ -168,10 +168,10 @@ class ParserService {
                 if (chromeTmpDataDir !== null) {
                     console.log(chromeTmpDataDir)
                     if (fs.existsSync('/tmp/' + chromeTmpDataDir)) {
-                        fs.rmSync('/tmp/' + chromeTmpDataDir);
+                        fs.rmSync('/tmp/' + chromeTmpDataDir, { recursive: true, force: true });
                     }
                     if (fs.existsSync('/tmp/snap-private-tmp/snap.chromium/tmp/' + chromeTmpDataDir)) {
-                        fs.rmSync('/tmp/snap-private-tmp/snap.chromium/tmp/' + chromeTmpDataDir);
+                        fs.rmSync('/tmp/snap-private-tmp/snap.chromium/tmp/' + chromeTmpDataDir, { recursive: true, force: true });
                     }
 
                 }
