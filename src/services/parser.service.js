@@ -127,8 +127,8 @@ class ParserService {
                 ]
             })
             let chromeSpawnArgs = browser.process().spawnargs;
+            console.log('chromeSpawnArgs', chromeSpawnArgs)
             for (let i = 0; i < chromeSpawnArgs.length; i++) {
-                console.log(chromeSpawnArgs)
                 if (chromeSpawnArgs[i].indexOf("--user-data-dir=") === 0) {
                     chromeTmpDataDir = chromeSpawnArgs[i].replace("--user-data-dir=", "");
                 }
