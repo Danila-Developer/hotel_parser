@@ -4,7 +4,7 @@ const { TimeoutError } = require('puppeteer')
 const moment = require('moment')
 const _ = require('lodash')
 const SettingsService = require('../services/settings.service')
-const path = require('path')
+const fs = require('fs')
 
 class ParserService {
     static actualRequestId = false
@@ -104,29 +104,34 @@ class ParserService {
 
     static async getBrowser(setPageBookingJavaScriptDisabled = true) {
         try {
+            let chromeTmpDataDir = null
             const browser = await puppeteer.launch({ headless: true, devtools: true,
-                executablePath: '/usr/bin/chromium-browser',
                 userDataDir: '/dev/null',
-                args: ['--no-sandbox',
+                args: [
+                    '--no-sandbox',
                     '--aggressive-cache-discard',
                     '--disable-cache',
                     '--disable-application-cache',
                     '--disable-offline-load-stale-cache',
                     '--disable-gpu-shader-disk-cache',
-                    '--disk-cache-dir=/dev/null',  // this is causing problem
-                    '--media-cache-dir=/dev/null', // this is causing problem
                     '--disk-cache-size=1',
                     '--media-cache-size=1',
-                    '--no-sandbox',
                     '--disable-setuid-sandbox',
                     '--disable-dev-shm-usage',
                     '--disable-accelerated-2d-canvas',
                     '--no-first-run',
                     '--no-zygote',
                     '--single-process',
-                    '--disable-gpu'
+                    '--disable-gpu',
+                    '--disable-dev-shm-usage'
                 ]
             })
+            let chromeSpawnArgs = browser.process().spawnargs;
+            for (let i = 0; i < chromeSpawnArgs.length; i++) {
+                if (chromeSpawnArgs[i].indexOf("--user-data-dir=") === 0) {
+                    chromeTmpDataDir = chromeSpawnArgs[i].replace("--user-data-dir=", "");
+                }
+            }
             const pageBooking = await browser.newPage()
             const pageMaps = await browser.newPage()
             const pageOfficialSite = await browser.newPage()
@@ -157,7 +162,14 @@ class ParserService {
             });
             await pageOfficialSite.setCacheEnabled(false);
 
-            return [browser, pageBooking, pageMaps, pageOfficialSite]
+            async function close() {
+                await browser.close()
+                if (chromeTmpDataDir !== null) {
+                    fs.rmSync(chromeTmpDataDir);
+                }
+            }
+
+            return [browser, pageBooking, pageMaps, pageOfficialSite, close]
         } catch (err) {
             console.log(err)
             //return await ParserService.getBrowser(setPageBookingJavaScriptDisabled)
@@ -170,7 +182,7 @@ class ParserService {
         let processNumber = 0
 
         while (ParserService.actualRequestId === currentRequestId) {
-            const [browser, pageBooking, pageMaps, pageOfficialSite] = await ParserService.getBrowser()
+            const [browser, pageBooking, pageMaps, pageOfficialSite, close] = await ParserService.getBrowser()
             try {
 
                 const [hotelNames, country] = await ParserService.getHotelsWithCheckDouble(pageBooking, ParserService.actualRequestInWork[currentRequestId], { processNumber, processesCount, i })
@@ -189,13 +201,11 @@ class ParserService {
                     }
                 }
                 processNumber = processNumber + 1
-                await browser.close()
+                await close()
             } catch (err) {
-                await browser.close()
+                await close()
                 processNumber = processNumber + 1
                 console.log(err)
-            } finally {
-                await browser?.close()
             }
         }
         ParserService.processInWorkCount[currentRequestId] = ParserService.processInWorkCount[currentRequestId] - 1
@@ -472,7 +482,7 @@ class ParserService {
             if (request?.destType === 'country') {
                 const [url, uf] = ParserService.getBookingUrl(request, { processNumber: 0, processesCount: 0, i: 0 })
 
-                const [browser, pageBooking, pageMaps, pageOfficialSite] = await ParserService.getBrowser(false)
+                const [browser, pageBooking, pageMaps, pageOfficialSite, close] = await ParserService.getBrowser(false)
 
                 await pageBooking.goto(url, { waitUntil: 'networkidle2' })
 
@@ -518,7 +528,7 @@ class ParserService {
                     ]
                 }
 
-                await browser.close()
+                await close()
             }
         } catch (err) {
             console.log(err)
