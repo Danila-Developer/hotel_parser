@@ -127,7 +127,7 @@ class ParserService {
                 ]
             })
             let chromeSpawnArgs = browser.process().spawnargs;
-            console.log('chromeSpawnArgs', chromeSpawnArgs)
+
             for (let i = 0; i < chromeSpawnArgs.length; i++) {
                 if (chromeSpawnArgs[i].indexOf("--user-data-dir=") === 0) {
                     chromeTmpDataDir = chromeSpawnArgs[i].replace("--user-data-dir=/tmp/", "");
@@ -168,10 +168,10 @@ class ParserService {
                 if (chromeTmpDataDir !== null) {
                     console.log(chromeTmpDataDir)
                     if (fs.existsSync('/tmp/' + chromeTmpDataDir)) {
-                        fs.rmdirSync('/tmp/' + chromeTmpDataDir);
+                        fs.rmSync('/tmp/' + chromeTmpDataDir);
                     }
                     if (fs.existsSync('/tmp/snap-private-tmp/snap.chromium/tmp/' + chromeTmpDataDir)) {
-                        fs.rmdirSync('/tmp/snap-private-tmp/snap.chromium/tmp/' + chromeTmpDataDir);
+                        fs.rmSync('/tmp/snap-private-tmp/snap.chromium/tmp/' + chromeTmpDataDir);
                     }
 
                 }
