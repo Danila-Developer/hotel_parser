@@ -45,7 +45,7 @@ class SearchService {
     }
 
     static async getAllRequests() {
-        const data = await models.RequestModel.findAll({raw: true, order: [['createdAt', 'DESC']], limit: 20})
+        const data = await models.RequestModel.findAll({raw: true, order: [['createdAt', 'DESC']]})
 
         return Promise.all(data.map(async item => {
             return {
