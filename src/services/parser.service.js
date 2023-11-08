@@ -43,6 +43,8 @@ class ParserService {
         const hotels = [...hotelNames]
 
         while (hotels.length > 0 && ParserService.actualRequestId === currentRequestId) {
+            console.log('post by names')
+            console.log(hotels)
             try {
                 if (!ParserService.hotelsInWork[currentRequestId].includes(hotels[0])) {
                     ParserService.hotelsInWork = {
@@ -180,7 +182,6 @@ class ParserService {
                         fs.rmSync('/tmp/snap-private-tmp/snap.chromium/tmp/' + chromeTmpDataDir, { recursive: true, force: true })
                         console.log('removed2', '/tmp/snap-private-tmp/snap.chromium/tmp/' + chromeTmpDataDir)
                     }
-
                 }
             }
 
