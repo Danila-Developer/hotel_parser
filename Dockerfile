@@ -1,6 +1,6 @@
 FROM node:16.14.0
 
-RUN apt-get install -y --no-install-recommends chromium-browser  && rm -rf /var/lib/apt/lists/*
+RUN snap install chromium
 
 WORKDIR /app
 
