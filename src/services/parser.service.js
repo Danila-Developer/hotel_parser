@@ -117,21 +117,21 @@ class ParserService {
                 executablePath: '/usr/bin/chromium-browser',
                 args: [
                     '--no-sandbox',
-                    '--aggressive-cache-discard',
-                    '--disable-cache',
-                    '--disable-application-cache',
-                    '--disable-offline-load-stale-cache',
-                    '--disable-gpu-shader-disk-cache',
-                    '--disk-cache-size=1',
-                    '--media-cache-size=1',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-accelerated-2d-canvas',
-                    '--no-first-run',
-                    '--no-zygote',
-                    '--single-process',
-                    '--disable-gpu',
-                    '--disable-dev-shm-usage'
+                    // '--aggressive-cache-discard',
+                    // '--disable-cache',
+                    // '--disable-application-cache',
+                    // '--disable-offline-load-stale-cache',
+                    // '--disable-gpu-shader-disk-cache',
+                    // '--disk-cache-size=1',
+                    // '--media-cache-size=1',
+                    // '--disable-setuid-sandbox',
+                    // '--disable-dev-shm-usage',
+                    // '--disable-accelerated-2d-canvas',
+                    // '--no-first-run',
+                    // '--no-zygote',
+                    // '--single-process',
+                    // '--disable-gpu',
+                    // '--disable-dev-shm-usage'
                 ]
             })
             let chromeSpawnArgs = browser.process().spawnargs;
@@ -169,7 +169,7 @@ class ParserService {
                     request.continue();
                 }
             });
-            await pageOfficialSite.setCacheEnabled(false);
+            //await pageOfficialSite.setCacheEnabled(false);
 
             async function close() {
                 await browser.close()
