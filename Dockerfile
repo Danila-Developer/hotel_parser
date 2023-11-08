@@ -1,11 +1,12 @@
 FROM ubuntu:22.04
 
-RUN apt-get update && apt-get install -y \
-      chromium-browser \
-      --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /etc/chromium.d/
-
+RUN \
+  echo "**** install packages ****" && \
+  apk add --no-cache \
+    chromium && \
+  echo "**** cleanup ****" && \
+  rm -rf \
+    /tmp/*
 
 #RUN apt-get update \
 #    && apt-get install -y wget gnupg \
