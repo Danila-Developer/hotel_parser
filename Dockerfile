@@ -31,7 +31,7 @@ FROM node:16.14.0
 
 #RUN apt update
 
-RUN apt install chromium-browser
+RUN apt install chromium
 
 
 WORKDIR /app
