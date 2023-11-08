@@ -531,7 +531,7 @@ class ParserService {
                 }
 
                 cities.forEach(item => {
-                    if (item.amount > 2000) {
+                    if (item.amount > 1400) {
                         filters.push({ name: item.filter, value: 0 })
                         ratings.forEach(rating => {
                             filters.push({ name: `${item.filter};${rating}`, value: 0, hasClass: true })
