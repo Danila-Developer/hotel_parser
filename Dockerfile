@@ -1,4 +1,4 @@
-FROM node:16.14.0
+FROM --platform=linux/amd64 node:16.14.0
 
 #RUN apt-get update && apt-get install -y \
 #      chromium \
@@ -31,6 +31,8 @@ RUN apt-get update \
 ## Add chromium user
 #RUN groupadd -r chromium && useradd -r -g chromium -G audio,video chromium \
 #    && mkdir -p /home/chromium/Downloads && chown -R chromium:chromium /home/chromium
+
+#RUN apt-get install chromium-browser
 
 WORKDIR /app
 

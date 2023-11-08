@@ -377,7 +377,7 @@ class ParserService {
 
         try {
             const startGoto = new Date().getTime()
-            await page.goto('https://www.google.ru/maps/', { waitUntil: 'networkidle2', timeout: timeout.goto * 2 })
+            await page.goto('https://www.google.ru/maps/', { waitUntil: 'networkidle2', timeout: timeout.goto * 4 })
             const endGoto = new Date().getTime()
 
             await page.type(`input[name=q]`, hotelName, {delay: 20})
