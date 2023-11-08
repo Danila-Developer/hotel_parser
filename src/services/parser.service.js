@@ -228,6 +228,8 @@ class ParserService {
             ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [currentRequestId]: [] }
         }
         if (ParserService.processInWorkCount[currentRequestId] < 1) {
+            ParserService.clearProcessState(currentRequestId)
+
             if (_.size(ParserService.requestsQueue) > 0) {
                 const [initRequest, ...queue] = ParserService.requestsQueue
 
@@ -452,6 +454,14 @@ class ParserService {
                     officialUrl: null
                 }
         }
+    }
+
+    static clearProcessState(requestId) {
+        ParserService.processInWorkCount = _.omit(ParserService.processInWorkCount, requestId)
+        ParserService.actualRequestInWork = _.omit(ParserService.actualRequestInWork, requestId)
+        ParserService.hotelsInWork = _.omit(ParserService.hotelsInWork, requestId)
+        ParserService.metaDataInWork = _.omit(ParserService.metaDataInWork, requestId)
+        ParserService.averageExecutionTime = _.omit(ParserService.averageExecutionTime, requestId)
     }
 
     static async getHotelsByRequest(requestId, page) {
