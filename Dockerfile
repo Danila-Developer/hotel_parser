@@ -1,7 +1,7 @@
 FROM node:16.14.0
 
 RUN apt-get install -y \
-      git \
+      chromium-browser \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
 
