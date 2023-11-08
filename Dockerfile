@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 ENV NVM_DIR /usr/local/nvm # or ~/.nvm , depending
 ENV NODE_VERSION 0.10.33
 
