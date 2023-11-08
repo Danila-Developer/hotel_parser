@@ -331,6 +331,7 @@ class ParserService {
         let nfltUrl = ''
         let offsetUrl = ''
         let uf = ''
+        const hotelNflt = 'ht_id=204;ht_id=206;ht_id=208;ht_id=203'
 
         if (rating) {
             ratingUrl = rating.split(',').join(';')
@@ -349,9 +350,9 @@ class ParserService {
                 if (ParserService.metaDataInWork[id]?.length > 0) {
                     uf = ParserService.metaDataInWork[id][0]?.name
                     if (ParserService.metaDataInWork[id][0]?.hasClass) {
-                        nfltUrl = `&nflt=${encodeURIComponent(priceUrl + ';' + uf)}`
+                        nfltUrl = `&nflt=${encodeURIComponent(priceUrl + ';' + uf + hotelNflt)}`
                     } else {
-                        nfltUrl = `&nflt=${encodeURIComponent(priceUrl + ';' + uf + ';' + ratingUrl)}`
+                        nfltUrl = `&nflt=${encodeURIComponent(priceUrl + ';' + uf + ';' + ratingUrl +  + ';' + hotelNflt)}`
                     }
                     offsetUrl =  `&offset=${ParserService.metaDataInWork[id][0]?.value}`
 
@@ -361,10 +362,10 @@ class ParserService {
                         _.invoke(ParserService.metaDataInWork, `${id}.shift`)
                     }
                 } else {
-                    nfltUrl = `&nflt=${encodeURIComponent(priceUrl + ';' + ratingUrl)}`
+                    nfltUrl = `&nflt=${encodeURIComponent(priceUrl + ';' + ratingUrl + ';' + hotelNflt)}`
                 }
             } else {
-                nfltUrl = `&nflt=${encodeURIComponent(priceUrl + ';' + ratingUrl)}`
+                nfltUrl = `&nflt=${encodeURIComponent(priceUrl + ';' + ratingUrl + ';' + hotelNflt)}`
             }
         }
 
@@ -541,7 +542,7 @@ class ParserService {
                 }
 
                 cities.forEach(item => {
-                    if (item.amount > 1400) {
+                    if (item.amount > 1000) {
                         filters.push({ name: item.filter, value: 0 })
                         ratings.forEach(rating => {
                             filters.push({ name: `${item.filter};${rating}`, value: 0, hasClass: true })
