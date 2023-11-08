@@ -188,7 +188,7 @@ class ParserService {
             return [browser, pageBooking, pageMaps, pageOfficialSite, close]
         } catch (err) {
             console.log(err)
-            return await ParserService.getBrowser(setPageBookingJavaScriptDisabled)
+            //return await ParserService.getBrowser(setPageBookingJavaScriptDisabled)
         }
 
     }
@@ -522,7 +522,7 @@ class ParserService {
                 const [url, uf] = ParserService.getBookingUrl(request, { processNumber: 0, processesCount: 0, i: 0 })
 
                 const [browser, pageBooking, pageMaps, pageOfficialSite, close] = await ParserService.getBrowser(false)
-                console.log(browser)
+
                 await pageBooking.goto(url, { waitUntil: 'networkidle2' })
 
                 await pageBooking.$$eval('button[data-testid="filters-group-expand-collapse"]', elements => {
