@@ -22,4 +22,4 @@ COPY . .
 
 EXPOSE 8800
 
-CMD ["ls"]
+CMD ["node", "src/index"]
