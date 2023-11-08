@@ -29,7 +29,7 @@ FROM node:16.14.0
 #    && rm -rf /var/lib/apt/lists/* \
 #    && groupadd -r pptruser && useradd -rm -g pptruser -G audio,video pptruser
 
-RUN apt update
+#RUN apt update
 
 RUN apt install chromium-browser
 
