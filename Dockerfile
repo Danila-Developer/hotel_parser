@@ -5,9 +5,11 @@ RUN apt-get update && apt-get install -y \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl https://get.volta.sh | bash
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
 
-RUN volta install node@16.14.0
+RUN NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && export NVM_DIR && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")" [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+RUN nvm install 16.14.0
 
 WORKDIR /app
 
