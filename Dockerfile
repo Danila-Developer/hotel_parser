@@ -1,6 +1,6 @@
 FROM node:16.14.0
 
-RUN apt install snapd
+RUN apt install snap
 
 RUN ln -s /var/lib/snapd/snap /snap
 
