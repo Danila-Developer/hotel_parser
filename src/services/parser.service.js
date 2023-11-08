@@ -324,8 +324,8 @@ class ParserService {
             }
         }
 
-        return await ParserService.getHotels(page, request, processMetaData)
-
+        //return await ParserService.getHotels(page, request, processMetaData)
+        return [[], country, uf]
     }
 
     static getBookingUrl({ id, place, rating, price, destType }, { processNumber, processesCount, i }) {
