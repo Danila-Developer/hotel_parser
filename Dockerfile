@@ -1,7 +1,7 @@
 FROM node:16.14.0
 
 RUN apt-get update && apt-get install -y \
-      chromium-browser \
+      chromium \
 #      chromium-l10n \
 #      fonts-liberation \
 #      fonts-roboto \
