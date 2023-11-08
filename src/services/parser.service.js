@@ -39,6 +39,7 @@ class ParserService {
     }
 
     static async postHotelsByNames(page, page2, hotelNames, currentRequestId, country) {
+        console.log('post by names')
         const hotels = [...hotelNames]
 
         while (hotels.length > 0 && ParserService.actualRequestId === currentRequestId) {
@@ -107,6 +108,7 @@ class ParserService {
     }
 
     static async getBrowser(setPageBookingJavaScriptDisabled = true) {
+        console.log('get browser')
         try {//'/usr/bin/google-chrome-stable'
             let chromeTmpDataDir = null
             const browser = await puppeteer.launch({ headless: true, devtools: false,
@@ -260,6 +262,7 @@ class ParserService {
     }
 
     static async getHotels(page, request, processMetaData) {
+        console.log('get hotels')
         const [url, uf] = ParserService.getBookingUrl(request, processMetaData)
 
         await page.goto(url, { waitUntil: 'networkidle2' })
@@ -300,6 +303,7 @@ class ParserService {
     }
 
     static async getHotelsWithCheckDouble(page, request, processMetaData) {
+        console.log('check double')
         const [names, country, uf] = await ParserService.getHotels(page, request, processMetaData)
 
         if (_.isArray(names)) {
@@ -318,18 +322,17 @@ class ParserService {
                     return [[], country, uf]
                 }
 
-                //return await ParserService.getHotelsWithCheckDouble(page, request, processMetaData)
-                return [[], country, uf]
+                return await ParserService.getHotelsWithCheckDouble(page, request, processMetaData)
             } else {
                 return [[], country, uf]
             }
         }
 
-        //return await ParserService.getHotels(page, request, processMetaData)
-        return [[], country, uf]
+        return await ParserService.getHotels(page, request, processMetaData)
     }
 
     static getBookingUrl({ id, place, rating, price, destType }, { processNumber, processesCount, i }) {
+        console.log('get booking url')
         let offset = processNumber * 25 * processesCount + 25 * i
         const checking = moment().add('4', 'M').format('YYYY-MM-DD')
         const checkout = moment().add('4', 'M').add('3', 'd').format('YYYY-MM-DD')
@@ -384,6 +387,7 @@ class ParserService {
     }
 
     static async getEmailFromOfficialSite(page, page2, hotelName, timeout) {
+        console.log('get email')
         const start = new Date().getTime()
 
         try {
