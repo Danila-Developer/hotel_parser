@@ -318,7 +318,8 @@ class ParserService {
                     return [[], country, uf]
                 }
 
-                return await ParserService.getHotelsWithCheckDouble(page, request, processMetaData)
+                //return await ParserService.getHotelsWithCheckDouble(page, request, processMetaData)
+                return [[], country, uf]
             } else {
                 return [[], country, uf]
             }
