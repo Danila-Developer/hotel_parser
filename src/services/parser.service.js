@@ -113,9 +113,9 @@ class ParserService {
         console.log('get browser')
         try {
             let chromeTmpDataDir = null
-            console.log(1)
+
             const browser = await puppeteer.launch({ headless: true, devtools: false,
-                executablePath: '/usr/bin/chromium',
+                //executablePath: '/usr/bin/chromium',
                 args: [
                     '--no-sandbox',
                     // '--aggressive-cache-discard',
@@ -135,9 +135,9 @@ class ParserService {
                     // '--disable-dev-shm-usage'
                 ]
             })
-            console.log(browser)
+
             let chromeSpawnArgs = browser.process().spawnargs;
-            console.log(chromeSpawnArgs)
+
             for (let i = 0; i < chromeSpawnArgs.length; i++) {
                 if (chromeSpawnArgs[i].indexOf("--user-data-dir=") === 0) {
                     chromeTmpDataDir = chromeSpawnArgs[i].replace("--user-data-dir=/tmp/", "");
