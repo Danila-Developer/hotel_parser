@@ -93,7 +93,7 @@ class ParserService {
             processesCount = ParserService.settings.processCount
         }
         ParserService.actualRequestId = request.id
-        ParserService.processInWorkCount = { ...ParserService.processInWorkCount, [request.id]: processesCount }
+        ParserService.processInWorkCount = { ...ParserService.processInWorkCount, [request.id]: 0 }
         ParserService.actualRequestInWork = { ...ParserService.actualRequestInWork, [request.id]: request }
         ParserService.hotelsInWork = { ...ParserService.hotelsInWork, [request.id]: [] }
         ParserService.metaDataInWork = { ...ParserService.metaDataInWork, [request.id]: [] }
@@ -191,6 +191,10 @@ class ParserService {
     }
 
     static async startParsingV2(currentRequestId, i, processesCount) {
+        ParserService.processInWorkCount = {
+            ...ParserService.processInWorkCount,
+            [currentRequestId]: ParserService.processInWorkCount[currentRequestId] + 1
+        }
 
         let processNumber = 0
 
@@ -220,7 +224,10 @@ class ParserService {
                 console.log(err)
             }
         }
-        ParserService.processInWorkCount[currentRequestId] = ParserService.processInWorkCount[currentRequestId] - 1
+        ParserService.processInWorkCount = {
+            ...ParserService.processInWorkCount,
+            [currentRequestId]: ParserService.processInWorkCount[currentRequestId] - 1
+        }
         console.log(ParserService.processInWorkCount)
 
         if (ParserService.actualRequestId === currentRequestId && ParserService.processInWorkCount[currentRequestId] < 1) {
