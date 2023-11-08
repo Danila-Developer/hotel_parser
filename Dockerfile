@@ -31,7 +31,7 @@ FROM node:16.14.0
 
 #RUN apt update
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get install -y --no-install-recommends \
 chromium \
 && \
 apt-get clean && \
