@@ -6,7 +6,6 @@ WORKDIR /app
 
 COPY . .
 
-
 EXPOSE 8800
 
 CMD ["node", "src/index"]
