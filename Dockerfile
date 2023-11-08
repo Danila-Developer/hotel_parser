@@ -1,6 +1,6 @@
 FROM node:16.14.0
 
-RUN wget http://mirrors.kernel.org/ubuntu/pool/universe/c/chromium-browser/chromium-chromedriver_85.0.4183.83-0ubuntu2_amd64.deb && apt install ./chromium-chromedriver_85.0.4183.83-0ubuntu2_amd64.deb
+RUN apt-get install -y chromium --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
