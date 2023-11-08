@@ -357,7 +357,7 @@ class ParserService {
                 if (ParserService.metaDataInWork[id]?.length > 0) {
                     uf = ParserService.metaDataInWork[id][0]?.name
                     if (ParserService.metaDataInWork[id][0]?.hasClass) {
-                        nfltUrl = `&nflt=${encodeURIComponent(priceUrl + ';' + uf + hotelNflt)}`
+                        nfltUrl = `&nflt=${encodeURIComponent(priceUrl + ';' + uf + ';' + hotelNflt)}`
                     } else {
                         nfltUrl = `&nflt=${encodeURIComponent(priceUrl + ';' + uf + ';' + ratingUrl +  + ';' + hotelNflt)}`
                     }
