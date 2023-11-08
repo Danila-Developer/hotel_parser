@@ -20,7 +20,7 @@ class ParserService {
         const request = await models.RequestModel.create({ place, rating: rating.join(','), price: price.join(','), reportCount, destType: destType })
 
         ParserService.settings = await SettingsService.getLastSettings()
-
+        console.log(ParserService.settings)
         if (ParserService.settings.clearBD) {
             await ParserService.deleteOldRequests()
         }
