@@ -5,8 +5,15 @@ RUN apt-get update && apt-get install -y \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
-RUN apt-get install -y nodejs
+ENV NVM_DIR /usr/local/nvm # or ~/.nvm , depending
+ENV NODE_VERSION 0.10.33
+
+# Install nvm with node and npm
+RUN curl https://raw.githubusercontent.com/creationix/nvm/v0.20.0/install.sh | bash \
+    && . $NVM_DIR/nvm.sh \
+    && nvm install $NODE_VERSION \
+    && nvm alias default $NODE_VERSION \
+    && nvm use default
 
 WORKDIR /app
 
