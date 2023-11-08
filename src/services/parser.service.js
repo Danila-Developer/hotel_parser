@@ -22,7 +22,6 @@ class ParserService {
         ParserService.settings = await SettingsService.getLastSettings()
 
         if (ParserService.settings.clearBD) {
-            console.log('clear')
             await ParserService.deleteOldRequests()
         }
 
