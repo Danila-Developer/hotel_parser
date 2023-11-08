@@ -1,20 +1,15 @@
-FROM node:16.14.0
+FROM ubuntu:20.04
 
 RUN apt-get update && apt-get install -y \
-      chromium \
-      chromium-l10n \
-      fonts-liberation \
-      fonts-roboto \
-      hicolor-icon-theme \
-      libcanberra-gtk-module \
-      libexif-dev \
-      libgl1-mesa-dri \
-      libgl1-mesa-glx \
-      libpangox-1.0-0 \
-      libv4l-0 \
-      fonts-symbola \
+      chromium-browser \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
+
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+
+RUN export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")" [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+RUN nvm install 16.14.0
 
 WORKDIR /app
 
