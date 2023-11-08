@@ -1,4 +1,4 @@
-FROM node:16.14.0
+FROM ubuntu:22.04.3
 
 RUN apt-get update && apt-get install -y \
       chromium \
@@ -45,4 +45,4 @@ COPY . .
 
 EXPOSE 8800
 
-CMD ["node", "src/index"]
+#CMD ["node", "src/index"]
