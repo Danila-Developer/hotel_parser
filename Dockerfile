@@ -13,7 +13,7 @@ ENV PATH $NODE_PATH:$PATH
 #      --no-install-recommends \
 #    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt install snapd
+RUN apt-get install snapd
 RUN snap install chromium
 
 WORKDIR /app
