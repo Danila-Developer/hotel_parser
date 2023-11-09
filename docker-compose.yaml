@@ -19,7 +19,7 @@ services:
   front:
     build:
       context: .
-      dockerfile: ./front/Dockerfile
+      dockerfile: ./frontend/Dockerfile
     ports:
       - "80:80"
     environment:
