@@ -2,7 +2,8 @@ FROM node:16.14.0 AS build
 WORKDIR /front
 COPY . .
 RUN yarn install
-RUN react-scripts build
+RUN ls ./node_modules
+RUN yarn build
 
 FROM nginx:1.19-alpine
 COPY --from=build /front/build /opt/site
