@@ -18,7 +18,7 @@ services:
       - "8800:8800"
   front:
     build:
-      context: .
+      context: ./frontend
       dockerfile: ./frontend/Dockerfile
     ports:
       - "80:80"
