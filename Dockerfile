@@ -13,6 +13,8 @@ ENV PATH $NODE_PATH:$PATH
 #      --no-install-recommends \
 #    && rm -rf /var/lib/apt/lists/*
 
+ENV DEBIAN_FRONTEND noninteractive
+
 RUN curl -LO https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 RUN apt-get install -y ./google-chrome-stable_current_amd64.deb
 RUN rm google-chrome-stable_current_amd64.deb
