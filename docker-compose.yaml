@@ -24,4 +24,4 @@ services:
       - "80:80"
     environment:
       NODE_ENV: production
-      API_URL: "45.90.34.168"
+      REACT_APP_API_URL: "45.90.34.168"
