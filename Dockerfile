@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 
 ENV NVM_DIR /usr/local/nvm
-ENV NODE_VERSION v16.17.0
+ENV NODE_VERSION v16.14.0
 RUN mkdir -p /usr/local/nvm && apt-get update && echo "y" | apt-get install curl
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 RUN /bin/bash -c "source $NVM_DIR/nvm.sh && nvm install $NODE_VERSION && nvm use --delete-prefix $NODE_VERSION"
