@@ -3,7 +3,7 @@ WORKDIR /front
 COPY . .
 RUN yarn install
 RUN ls ./node_modules
-RUN yarn build
+RUN yarn run build
 
 FROM nginx:1.19-alpine
 COPY --from=build /front/build /opt/site
