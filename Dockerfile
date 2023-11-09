@@ -9,15 +9,14 @@ ENV NODE_PATH $NVM_DIR/versions/node/$NODE_VERSION/bin
 ENV PATH $NODE_PATH:$PATH
 
 RUN apt-get update && apt-get install -y \
-      chromium \
+      chromium-browser \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-
-WORKDIR /app
+WORKDIR /usr/bin
 
 COPY . .
 
 EXPOSE 8800
 
-CMD ["node", "src/index"]
+CMD ["ls", "src/index"]
