@@ -16,3 +16,11 @@ services:
     platform: linux/amd64
     ports:
       - "8800:8800"
+  front:
+    build:
+      context: .
+      dockerfile: ./front/Dockerfile
+    ports:
+      - "80:80"
+    environment:
+      NODE_ENV: production
