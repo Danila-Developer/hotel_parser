@@ -1,0 +1,25 @@
+.w-1000 {
+    margin: 0 auto;
+    max-width: 1000px;
+}
+
+.mb-40 {
+    margin-bottom: 40px;
+}
+
+.w-100p {
+    width: 100% !important;
+}
+
+.m-10 {
+    margin-left: 10px !important;
+    margin-right: 10px !important;
+}
+
+.c-pointer {
+    cursor: pointer !important;
+}
+
+.max-width-40 {
+    max-width: 40px !important;
+}
