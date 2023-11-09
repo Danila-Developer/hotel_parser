@@ -1,4 +1,4 @@
-FROM node:15.8-alpine3.11 AS build
+FROM node:16.14.0 AS build
 WORKDIR /app
 COPY package.json package.json
 RUN yarn install
