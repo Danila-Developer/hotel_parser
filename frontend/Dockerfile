@@ -1,6 +1,6 @@
 FROM node:16.14.0 AS build
 WORKDIR /front
-COPY . .
+COPY ./frontend .
 RUN yarn install
 RUN yarn run build
 
