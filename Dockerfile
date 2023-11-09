@@ -8,10 +8,13 @@ RUN /bin/bash -c "source $NVM_DIR/nvm.sh && nvm install $NODE_VERSION && nvm use
 ENV NODE_PATH $NVM_DIR/versions/node/$NODE_VERSION/bin
 ENV PATH $NODE_PATH:$PATH
 
-RUN apt-get update && apt-get install -y \
-      chromium \
-      --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
+#RUN apt-get update && apt-get install -y \
+#      chromium \
+#      --no-install-recommends \
+#    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt install snapd
+RUN snap install chromium
 
 WORKDIR /app
 
