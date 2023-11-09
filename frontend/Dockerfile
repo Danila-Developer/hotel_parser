@@ -2,7 +2,6 @@ FROM node:16.14.0 AS build
 WORKDIR /front
 COPY . .
 RUN yarn install
-RUN ls ./node_modules
 RUN yarn run build
 
 FROM nginx:1.19-alpine
