@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-export const BASE_URL = `http://${process.env.REACT_APP_API_URL}/api`
+export const BASE_URL = `http://${process.env.API_URL}/api`
 //45.90.34.168:8800
 //localhost:8800
 const client = axios.create({

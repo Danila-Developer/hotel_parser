@@ -4,7 +4,7 @@ ENV REACT_APP_API_URL=$REACT_APP_API_URL
 WORKDIR /front
 COPY ./frontend .
 RUN yarn install
-RUN yarn run build
+RUN yarn cross-env API_URL=45.90.34.168 react-scripts build
 
 FROM nginx:1.19-alpine
 COPY --from=build /front/build /opt/site
