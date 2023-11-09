@@ -1,4 +1,6 @@
 FROM node:16.14.0 AS build
+ARG REACT_APP_API_URL
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
 WORKDIR /front
 COPY ./frontend .
 RUN yarn install
